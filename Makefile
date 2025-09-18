@@ -3,7 +3,7 @@
 
 # Build tools
 NASM = nasm -f bin 
-PAYLOAD_SIZE = 512
+PAYLOAD_SIZE = 50000
 
 
 # =============================================================================
@@ -14,7 +14,7 @@ all: clean build test
 .tmp/boot.bin: src/boot.asm
 	$(NASM) src/boot.asm -o .tmp/boot.bin
 
-boot.img: .tmp/boot.bin
+boot.img: .tmp/boot.bin generate_bytes.py
 	python3 generate_bytes.py --size ${PAYLOAD_SIZE} --output_fname foo.bin
 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 	dd if=.tmp/boot.bin of=boot.img conv=notrunc
