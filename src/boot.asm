@@ -27,14 +27,14 @@ read_loop:
   jz halt
 
   inc cl
-  cmp cl, 64
+  cmp cl, 19
   jne read
 
   mov cl, 1
   inc dh
 
 foo:
-  cmp dh, 0xff
+  cmp dh, 0x2
   jne read
 
   xor dh, dh
