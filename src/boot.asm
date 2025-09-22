@@ -1,5 +1,4 @@
 [BITS 16]
-[ORG 0x0]
 
 cli
 mov ax, 0x7C0
@@ -17,7 +16,7 @@ mov cx, 0x02
 mov dh, 0x0
 int 0x13
 
-es mov si, word [bx]
+mov si, KERNEL_SIZE
 
 read_loop:
   dec si
@@ -33,7 +32,6 @@ read_loop:
   mov cl, 1
   inc dh
 
-foo:
   cmp dh, 0x2
   jne read
 
@@ -41,14 +39,12 @@ foo:
   inc ch
 
   read:
+  clc
   mov ax, 0x0201
   int 0x13
 
+  jc read
   jmp read_loop
-  jmp foo
-
-; lp:
-;   jmp lp
 
 halt:
 hlt
