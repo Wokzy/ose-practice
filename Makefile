@@ -3,7 +3,7 @@
 
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 99
+PAYLOAD_SIZE = 6
 
 
 # =============================================================================
@@ -11,19 +11,23 @@ PAYLOAD_SIZE = 99
 
 all: clean build test
 
-.tmp/boot.bin: src/boot.asm
-	$(NASM) src/boot.asm -o .tmp/boot.bin -dKERNEL_SIZE=${PAYLOAD_SIZE}
+.tmp/boot.o: src/boot.asm
+	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
 
-boot.img: .tmp/boot.bin generate_bytes.py
-	python3 generate_bytes.py --n-sectors ${PAYLOAD_SIZE} --output_fname foo.bin
-	dd if=/dev/zero of=boot.img bs=1024 count=1440
-	dd if=.tmp/boot.bin of=boot.img conv=notrunc
-	dd if=foo.bin of=boot.img conv=notrunc seek=1
+.tmp/kernel.o: src/kernel.c
+	gcc -c -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector -I./include/ src/kernel.c -o .tmp/kernel.o
+
+boot.img: .tmp/boot.o .tmp/kernel.o
+	ld -m elf_i386 .tmp/boot.o .tmp/kernel.o -T link.ld -o os.elf
+	objcopy -I elf32-i386 -O binary os.elf boot.img
+# 	dd if=/dev/zero of=boot.img bs=1024 count=1440
+# 	dd if=.tmp/boot.o of=boot.img conv=notrunc
+# 	dd if=zero.bin of=boot.img conv=notrunc seek=2
 
 build: boot.img
 
-compile: .tmp/boot.bin
-	objdump -D -Mintel,i8086 -b binary -m i386 .tmp/boot.bin
+compile: boot.img
+	objdump -D -Mintel,i8086 -b binary -m i386 boot.img
 
 clean:
 	rm -f *.img
