@@ -1,11 +1,13 @@
 [BITS 16]
 
 cli
-mov ax, 0x7C0
-mov ss, ax
-mov ds, ax
 xor sp, sp
-; sti
+mov ss, sp
+mov ds, sp
+; mov ax, 0x7C0
+; mov ds, ax
+mov ax, 0x7c00
+mov sp, ax
 
 mov di, 0x7E0
 mov es, di
@@ -23,7 +25,7 @@ read_loop:
   add di, 0x20
   mov es, di
   test si, si
-  jz halt
+  jz boot
 
   inc cl
   cmp cl, 19
@@ -46,8 +48,48 @@ read_loop:
   jc read
   jmp read_loop
 
-halt:
-hlt
+boot:
+cld
+lgdt [gdt_descriptor]
+
+mov eax, cr0
+or eax, 1
+mov cr0, eax
+
+jmp 0x10:next
+
+[BITS 32]
+next:
+mov ax, 0x8 ; index = 1, ti = 0, pl = 0
+mov ds, ax ; out =(
+mov ss, ax
+mov es, ax
+mov fs, ax
+mov gs, ax
+
+mov ax, 0x10 ; index = 2, ti = 0, pl = 0
+
+
+[EXTERN kernel_entry]
+call kernel_entry
+
+gdt_descriptor:
+  dw 0x17
+  dd gdt
+
+; check sgtd in memory
+align 0x8
+gdt:
+  dq 0x0000
+  dq 0xcf92000000ffff ; 0b0000000001001001111100110000000000000000000000001111111111111111
+  dq 0xcf9a000000ffff ; 0b0000000001011001111100110000000000000000000000001111111111111111
+
+[BITS 32]
+[GLOBAL cpu_halt]
+cpu_halt:
+  jmp cpu_halt
+
+
 
 ; pmemsave 0x7C00 65536 res.bin
 
