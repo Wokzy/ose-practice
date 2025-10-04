@@ -1,10 +1,20 @@
 # =============================================================================
-# Variables
-
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 6
+PAYLOAD_SIZE = 100
+GCC ?= gcc
+LD ?= ld
 
+# Variables
+
+SRC_DIR = src
+BUILD_DIR = .tmp
+INCLUDE_DIR = ./include/
+
+C_SRC = $(wildcard $(SRC_DIR)/*.c)
+C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
+
+GCC_FLAGS = -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protector -I$(INCLUDE_DIR)
 
 # =============================================================================
 # Tasks
@@ -14,11 +24,16 @@ all: clean build test
 .tmp/boot.o: src/boot.asm
 	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
 
-.tmp/kernel.o: src/kernel.c
-	gcc -c -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector -I./include/ src/kernel.c -o .tmp/kernel.o
+#$(C_SRC_OBJ): $(C_SRC)
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
+	@echo $(C_SRC)
+	$(GCC) -c $(GCC_FLAGS) $< -o $@
 
-boot.img: .tmp/boot.o .tmp/kernel.o
-	ld -m elf_i386 .tmp/boot.o .tmp/kernel.o -T link.ld -o os.elf
+# .tmp/kernel.o: src/kernel.c
+# 	gcc -c  -I./include/ src/kernel.c -o .tmp/kernel.o
+
+boot.img: .tmp/boot.o $(C_SRC_OBJ)
+	$(LD) -m elf_i386 .tmp/boot.o $(C_SRC_OBJ) -T link.ld -o os.elf
 	objcopy -I elf32-i386 -O binary os.elf boot.img
 # 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 # 	dd if=.tmp/boot.o of=boot.img conv=notrunc
@@ -27,7 +42,7 @@ boot.img: .tmp/boot.o .tmp/kernel.o
 build: boot.img
 
 compile: boot.img
-	objdump -D -Mintel,i8086 -b binary -m i386 boot.img
+	objdump -D -Mintel,i8086 -b binary -m i386 os.elf
 
 clean:
 	rm -f *.img

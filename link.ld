@@ -5,6 +5,14 @@ SECTIONS {
         .tmp/boot.o (.text);
     }
 
+    .memory : {
+        *(.text);
+        *(.rodata);
+        *(.rodata.*);
+        *(.data);
+        *(.bss);
+    }
+
     .kernel : {
         *(.text);
         *(.rodata);
