@@ -1,5 +1,11 @@
 #pragma once
 
+#include <stdbool.h>
+
+// #define bool uint8_t
+// #define false (uint8_t)0
+// #define true (uint8_t)1
+
 typedef unsigned long long int uint64_t;
 typedef unsigned int uint32_t;
 typedef unsigned short int uint16_t;

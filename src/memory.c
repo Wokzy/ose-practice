@@ -14,14 +14,16 @@ void *memcpy(uint8_t *dest, const uint8_t *src, size_t n) {
 
 
 void *memmove(uint8_t *dest, const uint8_t *src, size_t n) {
-	uint8_t tmp = 0;
+	// TODO: support real memove
+	memcpy(dest, src, n);
+	// uint8_t tmp = 0;
 
-	for (size_t i = 0; i < n; i++) {
-		tmp = src[i];
-		dest[i] = tmp;
-	}
+	// for (size_t i = 0; i < n; i++) {
+	// 	tmp = src[i];
+	// 	dest[i] = tmp;
+	// }
 
-	return dest;
+	// return dest;
 }
 
 

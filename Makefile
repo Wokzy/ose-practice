@@ -14,23 +14,18 @@ INCLUDE_DIR = ./include/
 C_SRC = $(wildcard $(SRC_DIR)/*.c)
 C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
 
-GCC_FLAGS = -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protector -I$(INCLUDE_DIR)
+GCC_FLAGS = -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mavx -fno-stack-protector -I$(INCLUDE_DIR)
 
 # =============================================================================
 # Tasks
 
-all: clean build test
+all: build test
 
 .tmp/boot.o: src/boot.asm
 	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
 
-#$(C_SRC_OBJ): $(C_SRC)
 $(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
-	@echo $(C_SRC)
 	$(GCC) -c $(GCC_FLAGS) $< -o $@
-
-# .tmp/kernel.o: src/kernel.c
-# 	gcc -c  -I./include/ src/kernel.c -o .tmp/kernel.o
 
 boot.img: .tmp/boot.o $(C_SRC_OBJ)
 	$(LD) -m elf_i386 .tmp/boot.o $(C_SRC_OBJ) -T link.ld -o os.elf
