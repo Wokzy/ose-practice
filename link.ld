@@ -37,6 +37,22 @@ SECTIONS {
         *(.bss);
     }
 
+    .panic : {
+        *(.text);
+        *(.rodata);
+        *(.rodata.*);
+        *(.data);
+        *(.bss);
+    }
+
+    .allocator : {
+        *(.text);
+        *(.rodata);
+        *(.rodata.*);
+        *(.data);
+        *(.bss);
+    }
+
     /DISCARD/ : {
         *(.eh_frame)
         *(.note.gnu.property)
