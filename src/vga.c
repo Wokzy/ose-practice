@@ -3,8 +3,6 @@
 #include "dtypes.h"
 #include "memory.h"
 
-#define VGA_MAX_X 79
-#define VGA_MAX_Y 24
 #define VGA_LINE_LEN 160
 #define VGA_SCREEN_SIZE 4000
 
