@@ -6,7 +6,7 @@
 #include "printer.h"
 #include "memory.h"
 
-#define PRINTER_MAX_X 79
+#define PRINTER_MAX_X 80
 #define PRINTER_MAX_Y 24
 
 static size_t coord_x = 0;
