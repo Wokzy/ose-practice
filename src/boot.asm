@@ -87,7 +87,9 @@ gdt:
 [BITS 32]
 [GLOBAL cpu_halt]
 cpu_halt:
-  jmp cpu_halt
+  cli
+  hlt
+  ; jmp cpu_halt
 
 
 
