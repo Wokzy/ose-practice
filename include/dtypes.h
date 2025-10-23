@@ -6,7 +6,7 @@
 // #define false (uint8_t)0
 // #define true (uint8_t)1
 
-#define NULL 0
+#define NULL (void*)0
 
 typedef unsigned long long int uint64_t;
 typedef unsigned int uint32_t;

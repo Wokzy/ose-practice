@@ -15,15 +15,17 @@ void *memcpy(uint8_t *dest, const uint8_t *src, size_t n) {
 
 void *memmove(uint8_t *dest, const uint8_t *src, size_t n) {
 	// TODO: support real memove
-	memcpy(dest, src, n);
-	// uint8_t tmp = 0;
 
-	// for (size_t i = 0; i < n; i++) {
-	// 	tmp = src[i];
-	// 	dest[i] = tmp;
-	// }
+	if (((size_t)dest < (size_t)src) || ((size_t)src - (size_t)dest > n)) {
+		memcpy(dest, src, n);
+		return;
+	}
 
-	// return dest;
+	for (size_t i = n; i > 0; --i) {
+		dest[i - 1] = src[i - 1];
+	}
+
+	return dest;
 }
 
 

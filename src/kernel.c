@@ -2,6 +2,7 @@
 #include "dtypes.h"
 #include "memory.h"
 #include "printer.h"
+#include "allocator.h"
 #include "assert.h"
 #include "vga.h"
 
@@ -24,6 +25,8 @@ _Noreturn void kernel_entry() {
 	// vga_print_colored_char(0, 0, (uint8_t)'H', GREEN, BLACK, false);
 	printf("hello: %x\n", 0xfafa);
 	printf("hello: %d", -124);
+
+	// assert(2 == 3);
 
 	char *msg = calloc_undead(10, 7);
 	msg[0] = 'B';

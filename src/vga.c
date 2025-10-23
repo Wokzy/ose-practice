@@ -24,15 +24,14 @@ void vga_init(void) {
 void vga_print_colored_char(uint8_t x, uint8_t y, uint8_t chr, enum VGA_COLOR front, enum VGA_COLOR background, bool blinking) {
 	uint8_t *dest = vga_coords_to_ptr(x, y);
 
-	if (background > 7) {
-		background = 0;
+	uint16_t output = (uint16_t)(((uint8_t) background << 4) | (uint8_t)front) << 8;
+	output |= (uint16_t)chr;
+
+	if (blinking) {
+		output |= (uint16_t)128;
 	}
 
-	*(dest + 1) = ((uint8_t) background << 4) | (uint8_t)front;
-	*(dest) = chr;
-
-	if (blinking)
-		*(dest + 1) |= 128;
+	*dest = output;
 }
 
 
