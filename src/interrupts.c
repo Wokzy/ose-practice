@@ -46,8 +46,8 @@ struct interrupt_context {
 };
 
 
-static void* gen_idt() {
-	uint8_t* tramps = malloc_undead(INTERRUPTS_TRAMPOLINE_SIZE * INTERRUPTS_TALBE_SIZE, 8);
+static void *gen_idt() {
+	uint8_t *tramps = malloc_undead(INTERRUPTS_TRAMPOLINE_SIZE * INTERRUPTS_TALBE_SIZE, 8);
 
 	for (size_t vector = 0; vector < INTERRUPTS_TALBE_SIZE; vector++) {
 		bool has_error_code = false;
@@ -57,7 +57,7 @@ static void* gen_idt() {
 			}
 		}
 
-		uint8_t* tramp = tramps + vector * INTERRUPTS_TRAMPOLINE_SIZE;
+		uint8_t *tramp = tramps + vector * INTERRUPTS_TRAMPOLINE_SIZE;
 		size_t offset = 0;
 		if (!has_error_code) {
 			tramp[offset++] = 0x50; // push eax
@@ -66,7 +66,7 @@ static void* gen_idt() {
 		tramp[offset++] = vector; // vector
 		tramp[offset++] = 0xE9; // relative jmp 16bit rel
 		size_t distance = (size_t)interrupts_collect_context - (size_t)(tramp + offset + 4);
-		*(size_t*)(tramp + offset) = distance;
+		*(size_t *)(tramp + offset) = distance;
 	}
 
 	interrupt_desc* idt = malloc_undead(sizeof(interrupt_desc) * INTERRUPTS_TALBE_SIZE, sizeof(interrupt_desc));
@@ -86,9 +86,9 @@ static void* gen_idt() {
 	return idt;
 }
 
-void setup_interrupts() {
+void interrupts_setup_interrupts() {
 	assert(sizeof(interrupt_desc) == 8);
-	void* idt = gen_idt();
+	void *idt = gen_idt();
 	uint16_t idt_limit = INTERRUPTS_TALBE_SIZE * sizeof(interrupt_desc) - 1;
 	uint64_t pseudo_idt = ((uint64_t)idt << 16) | idt_limit;
 	load_interrupt_descrtiptors_table(&pseudo_idt);
@@ -101,7 +101,7 @@ void setup_interrupts() {
 	// );
 }
 
-void universal_handler(struct interrupt_context* context) {
+void interrupts_universal_handler(struct interrupt_context *context) {
 	kernel_panic("unhandled interrupt #%x at %x:%x\n\n"
 		  "Registers: \n"
 		  "    EAX: %x" "    EBX: %x" "    ECX: %x" "    EDX: %x\n"

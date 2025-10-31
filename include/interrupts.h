@@ -2,6 +2,5 @@
 
 struct interrupt_context;
 
-void setup_interrupts();
-
-void universal_handler(struct interrupt_context* context);
+void interrupts_setup_interrupts();
+void interrupts_universal_handler(struct interrupt_context* context);

@@ -23,7 +23,7 @@ void exp() {
 _Noreturn void kernel_entry() {
 	init_printer();
 
-	setup_interrupts();
+	interrupts_setup_interrupts();
 
 	// zero_div();
 	fake_syscall();
