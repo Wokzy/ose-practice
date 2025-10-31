@@ -11,8 +11,8 @@
 
 static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15};
 
-extern void interrupts_collect_context(); // in boot.asm
-extern void load_interrupt_descrtiptors_table(void *); // in boot.asm
+extern void interrupts_collect_context();
+extern void load_interrupt_descrtiptors_table(void *);
 
 typedef struct {
 	uint16_t offset_low      : 16;
@@ -29,7 +29,14 @@ typedef struct {
 
 struct interrupt_context {
 	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-	// uint32_t xmm0_0, xmm0_1, xmm0_2, xmm0_3;
+	uint32_t xmm7_0, xmm7_1, xmm7_2, xmm7_3;
+	uint32_t xmm6_0, xmm6_1, xmm6_2, xmm6_3;
+	uint32_t xmm5_0, xmm5_1, xmm5_2, xmm5_3;
+	uint32_t xmm4_0, xmm4_1, xmm4_2, xmm4_3;
+	uint32_t xmm3_0, xmm3_1, xmm3_2, xmm3_3;
+	uint32_t xmm2_0, xmm2_1, xmm2_2, xmm2_3;
+	uint32_t xmm1_0, xmm1_1, xmm1_2, xmm1_3;
+	uint32_t xmm0_0, xmm0_1, xmm0_2, xmm0_3;
 	alignas(4) uint16_t gs, fs, es, ds;
 	alignas(4) uint8_t vector_index;
 	uint32_t error_code;
@@ -62,7 +69,7 @@ static void* gen_idt() {
 		*(size_t*)(tramp + offset) = distance;
 	}
 
-	interrupt_desc* idt = malloc_undead(sizeof(interrupt_desc) * INTERRUPTS_TALBE_SIZE, sizeof(interrupt_desc)); // slide 37
+	interrupt_desc* idt = malloc_undead(sizeof(interrupt_desc) * INTERRUPTS_TALBE_SIZE, sizeof(interrupt_desc));
 
 	for (size_t vector = 0; vector < INTERRUPTS_TALBE_SIZE; vector++) {
 		idt[vector].offset_low = (size_t)(tramps + INTERRUPTS_TRAMPOLINE_SIZE * vector) & 0xFFFF;
@@ -99,12 +106,26 @@ void universal_handler(struct interrupt_context* context) {
 		  "Registers: \n"
 		  "    EAX: %x" "    EBX: %x" "    ECX: %x" "    EDX: %x\n"
 		  "    EDI: %x" "    ESI: %x" "    ESP: %x" "    EBP: %x\n"
-		  "    DS : %x" "    ES : %x" "    GS : %x" "    FS : %x\n\n"
-		  // "    XMM0: %x%x%x%x                                   \n\n"
+		  "    DS : %x" "    ES : %x" "    GS : %x" "    FS : %x\n"
+		  "    XMM0: %x%x%x%x                                   \n"
+		  "    XMM1: %x%x%x%x                                   \n"
+		  "    XMM2: %x%x%x%x                                   \n"
+		  "    XMM3: %x%x%x%x                                   \n"
+		  "    XMM4: %x%x%x%x                                   \n"
+		  "    XMM5: %x%x%x%x                                   \n"
+		  "    XMM6: %x%x%x%x                                   \n"
+		  "    XMM7: %x%x%x%x                                   \n\n"
 		  "Error code: %x\n\n"
 		  "EFLAGS: %x\n", context->vector_index, context->cs, context->eip, context->eax, context->ebx, context->ecx, context->edx,
 		  context->edi, context->esi, context->esp, context->ebp, context->ds, context->es, context->gs, context->fs,
-		  // context->xmm0_0, context->xmm0_1, context->xmm0_2, context->xmm0_3,
+		  context->xmm0_0, context->xmm0_1, context->xmm0_2, context->xmm0_3,
+		  context->xmm1_0, context->xmm1_1, context->xmm1_2, context->xmm1_3,
+		  context->xmm2_0, context->xmm2_1, context->xmm2_2, context->xmm2_3,
+		  context->xmm3_0, context->xmm3_1, context->xmm3_2, context->xmm3_3,
+		  context->xmm4_0, context->xmm4_1, context->xmm4_2, context->xmm4_3,
+		  context->xmm5_0, context->xmm5_1, context->xmm5_2, context->xmm5_3,
+		  context->xmm6_0, context->xmm6_1, context->xmm6_2, context->xmm6_3,
+		  context->xmm7_0, context->xmm7_1, context->xmm7_2, context->xmm7_3,
 		  context->error_code,
 		  context->eflags);
 }

@@ -139,11 +139,17 @@ interrupts_collect_context:
   push fs
   push gs
 
-  ; sub esp, 16
-  ; movdqu xmm0, [pooo]
-  ; movdqu [esp], xmm0
+  movdqu xmm0, [pooo]
+  movdqu [esp - 16], xmm0
+  movdqu [esp - 32], xmm1
+  movdqu [esp - 48], xmm2
+  movdqu [esp - 64], xmm3
+  movdqu [esp - 80], xmm4
+  movdqu [esp - 96], xmm5
+  movdqu [esp - 112], xmm6
+  movdqu [esp - 128], xmm7
+  sub esp, 128
   pusha
-
 
   mov ax, 0x8
   mov ds, ax
@@ -165,7 +171,7 @@ interrupts_collect_context:
   mov esp, ebx
   popa
 
-  ; add esp, 16
+  add esp, 128
 
   pop gs
   pop fs
@@ -174,13 +180,11 @@ interrupts_collect_context:
   add esp, 8 ; vector index + error code
   iretd
 
-  ; movdqu [esp], xmm0
-  ; movq [esp], mm0
-
 ; pmemsave 0x7C00 65536 res.bin
 
 pooo:
- dw 0x1111, 0x2222, 0x3333, 0x4444
+ dd 0x11111111, 0x22222222, 0x33333333, 0x44444444
+ ; dq 0xffffffffffffffff, 0x1
 
 
 times 510-($-$$) db 0

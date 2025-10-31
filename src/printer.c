@@ -85,9 +85,9 @@ static void print_hex(uint32_t number) {
 	// 	return;
 	// }
 
-	char value[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	char value[8] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-	for (size_t i = 10; i > 0; i--) {
+	for (size_t i = 8; i > 0; i--) {
 		// if (number == 0)
 		// 	break;
 
@@ -96,7 +96,7 @@ static void print_hex(uint32_t number) {
 		number >>= 4;
 	}
 
-	for (size_t i = 0; i < 10; i++) {
+	for (size_t i = 0; i < 8; i++) {
 		if (value[i] != -1)
 			feed_char(value[i]);
 	}

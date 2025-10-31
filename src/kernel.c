@@ -21,7 +21,7 @@ void exp() {
 }
 
 _Noreturn void kernel_entry() {
-	// init_printer();
+	init_printer();
 
 	setup_interrupts();
 

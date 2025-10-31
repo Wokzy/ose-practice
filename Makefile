@@ -14,7 +14,8 @@ INCLUDE_DIR = ./include/
 C_SRC = $(wildcard $(SRC_DIR)/*.c)
 C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
 
-GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -msse -fno-stack-protector -I$(INCLUDE_DIR)
+# https://gcc.gnu.org/onlinedocs/gcc-4.3.3/gcc/i386-and-x86_002d64-Options.html#i386-and-x86_002d64-Options
+GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -msse -msse2 -msse3 -mtune=core2 -fno-stack-protector -I$(INCLUDE_DIR)
 
 # =============================================================================
 # Tasks
@@ -45,9 +46,9 @@ clean:
 	mkdir .tmp
 
 test: build
-	qemu-system-i386 -cpu pentium3 -m 1g -fda boot.img -monitor stdio -device VGA -display curses
+	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses
 
 debug: build
-	qemu-system-i386 -cpu pentium3 -m 1g -fda boot.img -monitor stdio -device VGA -display curses -s -S
+	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses -s -S
 
 .PHONY: all build clean test debug
