@@ -80,16 +80,16 @@ static void print_signed(int32_t number) {
 
 
 static void print_hex(uint32_t number) {
-	if (number == 0) {
-		feed_char('0');
-		return;
-	}
+	// if (number == 0) {
+	// 	feed_char('0');
+	// 	return;
+	// }
 
 	char value[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 	for (size_t i = 10; i > 0; i--) {
-		if (number == 0)
-			break;
+		// if (number == 0)
+		// 	break;
 
 		char tmp = (char)(number % 16);
 		value[i - 1] = (tmp < 10) ? '0' + tmp : 'a' + tmp - (char)10;

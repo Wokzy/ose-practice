@@ -53,6 +53,14 @@ SECTIONS {
         *(.bss);
     }
 
+    .interrupts : {
+        *(.text);
+        *(.rodata);
+        *(.rodata.*);
+        *(.data);
+        *(.bss);
+    }
+
     /DISCARD/ : {
         *(.eh_frame)
         *(.note.gnu.property)
