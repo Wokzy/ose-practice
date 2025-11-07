@@ -26,7 +26,13 @@ _Noreturn void kernel_entry() {
 	interrupts_setup_interrupts();
 
 	// zero_div();
-	fake_syscall();
+	// fake_syscall();
 
-	infinite_loop();
+	// infinite_loop();
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"__inf_loop:\n"
+		"jmp __inf_loop\n"
+		".att_syntax\n"
+	);
 }

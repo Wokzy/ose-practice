@@ -11,8 +11,8 @@
 
 static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15};
 
-extern void interrupts_collect_context();
-extern void load_interrupt_descrtiptors_table(void *);
+void interrupts_collect_context();
+void load_interrupt_descrtiptors_table(void *);
 
 typedef struct {
 	uint16_t offset_low      : 16;
@@ -64,7 +64,7 @@ static void *gen_idt() {
 		}
 		tramp[offset++] = 0x6A; // push imm8
 		tramp[offset++] = vector; // vector
-		tramp[offset++] = 0xE9; // relative jmp 16bit rel
+		tramp[offset++] = 0xE9; // relative jmp 32bit rel
 		size_t distance = (size_t)interrupts_collect_context - (size_t)(tramp + offset + 4);
 		*(size_t *)(tramp + offset) = distance;
 	}

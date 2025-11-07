@@ -171,6 +171,15 @@ interrupts_collect_context:
   mov esp, ebx
   popa
 
+  movdqu xmm7, [esp]
+  movdqu xmm6, [esp + 16]
+  movdqu xmm5, [esp + 32]
+  movdqu xmm4, [esp + 48]
+  movdqu xmm3, [esp + 64]
+  movdqu xmm2, [esp + 80]
+  movdqu xmm1, [esp + 96]
+  movdqu xmm0, [esp + 112]
+
   add esp, 128
 
   pop gs
