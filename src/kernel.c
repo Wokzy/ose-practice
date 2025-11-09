@@ -4,9 +4,13 @@
 #include "printer.h"
 #include "allocator.h"
 #include "assert.h"
+#include "interrupts.h"
 #include "vga.h"
 
 void cpu_halt();
+void fake_syscall();
+void infinite_loop();
+void zero_div();
 
 void exp() {
 	while (1) {
@@ -18,25 +22,22 @@ void exp() {
 
 _Noreturn void kernel_entry() {
 	init_printer();
-	// vga_linefeed();
 
-	// // vga_clear_screen();
+	interrupts_setup_interrupts();
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"sti\n"
+		".att_syntax\n"
+	);
 
-	// vga_print_colored_char(0, 0, (uint8_t)'H', GREEN, BLACK, false);
-	printf("hello: %x\n", 0xfafa);
-	printf("hello: %d", -124);
+	// zero_div();
+	// fake_syscall();
 
-	// assert(2 == 3);
-
-	char *msg = calloc_undead(10, 7);
-	msg[0] = 'B';
-	printf("\n\n%s", msg);
-
-	exp();
-
-	// assert(2 == 3);
-
-	// memset(vga, 0, 4000);
-	// *((uint16_t*) 0xB8000) = 0x748;
-	cpu_halt();
+	// infinite_loop();
+	// __asm__ volatile (
+	// 	".intel_syntax noprefix\n"
+	// 	"__inf_loop:\n"
+	// 	"jmp __inf_loop\n"
+	// 	".att_syntax\n"
+	// );
 }

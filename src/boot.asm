@@ -1,6 +1,16 @@
 [BITS 16]
 
 cli
+
+; enable sse
+mov eax, cr0
+and ax, 0xFFFB
+or ax, 0x2
+mov cr0, eax
+mov eax, cr4
+or ax, 3 << 9
+mov cr4, eax
+
 xor sp, sp
 mov ss, sp
 mov ds, sp
@@ -71,6 +81,7 @@ mov ax, 0x10 ; index = 2, ti = 0, pl = 0
 
 
 [EXTERN kernel_entry]
+; sti
 call kernel_entry
 
 gdt_descriptor:
@@ -89,11 +100,100 @@ gdt:
 cpu_halt:
   cli
   hlt
-  ; jmp cpu_halt
+
+[GLOBAL infinite_loop]
+infinite_loop:
+  jmp infinite_loop
 
 
+[GLOBAL load_interrupt_descrtiptors_table]
+load_interrupt_descrtiptors_table:
+  mov eax, dword [esp + 4]
+  lidt [eax]
+  ret
+
+[GLOBAL fake_syscall]
+fake_syscall:
+  mov eax, 1
+  mov ebx, 2
+  mov edx, 3
+  mov ecx, 4
+  mov edi, 5
+  mov esi, 6
+  mov ebp, 10
+  int 0x80
+  ret
+
+[GLOBAL zero_div]
+zero_div:
+  xor eax, eax
+  idiv eax
+
+[GLOBAL interrupts_collect_context]
+[EXTERN interrupts_universal_handler]
+interrupts_collect_context:
+  cld
+
+  push ds
+  push es
+  push fs
+  push gs
+
+  ; movdqu xmm0, [pooo]
+  movdqu [esp - 16], xmm0
+  movdqu [esp - 32], xmm1
+  movdqu [esp - 48], xmm2
+  movdqu [esp - 64], xmm3
+  movdqu [esp - 80], xmm4
+  movdqu [esp - 96], xmm5
+  movdqu [esp - 112], xmm6
+  movdqu [esp - 128], xmm7
+  sub esp, 128
+  pusha
+
+  mov ax, 0x8
+  mov ds, ax
+  mov es, ax
+  mov fs, ax
+  mov gs, ax
+
+  mov ebx, esp
+
+  ; выравниваем стек так, чтобы (sp - 4) mod 32 = 0
+  mov ecx, esp
+  mov eax, 28
+  and ecx, 0x1f
+  add eax, ecx
+  sub esp, eax
+
+  push ebx
+  call interrupts_universal_handler
+  mov esp, ebx
+  popa
+
+  movdqu xmm7, [esp]
+  movdqu xmm6, [esp + 16]
+  movdqu xmm5, [esp + 32]
+  movdqu xmm4, [esp + 48]
+  movdqu xmm3, [esp + 64]
+  movdqu xmm2, [esp + 80]
+  movdqu xmm1, [esp + 96]
+  movdqu xmm0, [esp + 112]
+
+  add esp, 128
+
+  pop gs
+  pop fs
+  pop es
+  pop ds
+  add esp, 8 ; vector index + error code
+  iretd
 
 ; pmemsave 0x7C00 65536 res.bin
+
+pooo:
+ dd 0x11111111, 0x22222222, 0x33333333, 0x44444444
+ ; dq 0xffffffffffffffff, 0x1
 
 
 times 510-($-$$) db 0

@@ -17,8 +17,7 @@ void *memmove(uint8_t *dest, const uint8_t *src, size_t n) {
 	// TODO: support real memove
 
 	if (((size_t)dest < (size_t)src) || ((size_t)src - (size_t)dest > n)) {
-		memcpy(dest, src, n);
-		return;
+		return memcpy(dest, src, n);
 	}
 
 	for (size_t i = n; i > 0; --i) {
