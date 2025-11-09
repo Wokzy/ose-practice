@@ -81,7 +81,7 @@ mov ax, 0x10 ; index = 2, ti = 0, pl = 0
 
 
 [EXTERN kernel_entry]
-sti
+; sti
 call kernel_entry
 
 gdt_descriptor:
@@ -139,7 +139,7 @@ interrupts_collect_context:
   push fs
   push gs
 
-  movdqu xmm0, [pooo]
+  ; movdqu xmm0, [pooo]
   movdqu [esp - 16], xmm0
   movdqu [esp - 32], xmm1
   movdqu [esp - 48], xmm2

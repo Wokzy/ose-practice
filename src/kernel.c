@@ -24,15 +24,20 @@ _Noreturn void kernel_entry() {
 	init_printer();
 
 	interrupts_setup_interrupts();
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"sti\n"
+		".att_syntax\n"
+	);
 
 	// zero_div();
 	// fake_syscall();
 
 	// infinite_loop();
-	__asm__ volatile (
-		".intel_syntax noprefix\n"
-		"__inf_loop:\n"
-		"jmp __inf_loop\n"
-		".att_syntax\n"
-	);
+	// __asm__ volatile (
+	// 	".intel_syntax noprefix\n"
+	// 	"__inf_loop:\n"
+	// 	"jmp __inf_loop\n"
+	// 	".att_syntax\n"
+	// );
 }

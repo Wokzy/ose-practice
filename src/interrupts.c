@@ -14,6 +14,7 @@ static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x1
 void interrupts_collect_context();
 void load_interrupt_descrtiptors_table(void *);
 
+#pragma pack(push, 1)
 typedef struct {
 	uint16_t offset_low      : 16;
 	uint16_t segment_selector: 16;
@@ -25,6 +26,7 @@ typedef struct {
 	uint8_t  P               : 1;
 	uint16_t offset_high     : 16;
 } interrupt_desc;
+#pragma pack(pop)
 
 
 struct interrupt_context {
