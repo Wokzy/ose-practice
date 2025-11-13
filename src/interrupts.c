@@ -10,43 +10,10 @@
 #define INTERRUPTS_TALBE_SIZE 256
 
 static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15};
+static struct interrupts_config int_config;
 
 void interrupts_collect_context();
 void load_interrupt_descrtiptors_table(void *);
-
-#pragma pack(push, 1)
-typedef struct {
-	uint16_t offset_low      : 16;
-	uint16_t segment_selector: 16;
-	uint8_t  reserved        : 8;
-	uint8_t  desc_type       : 3;
-	uint8_t  D               : 1;
-	uint8_t  fixed_zero      : 1;
-	uint8_t  dpl             : 2;
-	uint8_t  P               : 1;
-	uint16_t offset_high     : 16;
-} interrupt_desc;
-#pragma pack(pop)
-
-
-struct interrupt_context {
-	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-	uint32_t xmm7_0, xmm7_1, xmm7_2, xmm7_3;
-	uint32_t xmm6_0, xmm6_1, xmm6_2, xmm6_3;
-	uint32_t xmm5_0, xmm5_1, xmm5_2, xmm5_3;
-	uint32_t xmm4_0, xmm4_1, xmm4_2, xmm4_3;
-	uint32_t xmm3_0, xmm3_1, xmm3_2, xmm3_3;
-	uint32_t xmm2_0, xmm2_1, xmm2_2, xmm2_3;
-	uint32_t xmm1_0, xmm1_1, xmm1_2, xmm1_3;
-	uint32_t xmm0_0, xmm0_1, xmm0_2, xmm0_3;
-	alignas(4) uint16_t gs, fs, es, ds;
-	alignas(4) uint8_t vector_index;
-	uint32_t error_code;
-	uint32_t eip;
-	alignas(4) uint16_t cs;
-	uint32_t eflags;
-};
-
 
 static void *gen_idt() {
 	uint8_t *tramps = malloc_undead(INTERRUPTS_TRAMPOLINE_SIZE * INTERRUPTS_TALBE_SIZE, 8);
@@ -77,7 +44,7 @@ static void *gen_idt() {
 		idt[vector].offset_low = (size_t)(tramps + INTERRUPTS_TRAMPOLINE_SIZE * vector) & 0xFFFF;
 		idt[vector].segment_selector = 0x10;
 		idt[vector].reserved = 0;
-		idt[vector].desc_type = 0b110;
+		idt[vector].desc_type = 0b110 | int_config.is_trap_gate;
 		idt[vector].D = 0b1;
 		idt[vector].fixed_zero = 0b0;
 		idt[vector].dpl = 0b00;
@@ -88,8 +55,9 @@ static void *gen_idt() {
 	return idt;
 }
 
-void interrupts_setup_interrupts() {
+void interrupts_setup_interrupts(struct interrupts_config config) {
 	assert(sizeof(interrupt_desc) == 8);
+	int_config = config;
 	void *idt = gen_idt();
 	uint16_t idt_limit = INTERRUPTS_TALBE_SIZE * sizeof(interrupt_desc) - 1;
 	uint64_t pseudo_idt = ((uint64_t)idt << 16) | idt_limit;
@@ -103,7 +71,7 @@ void interrupts_setup_interrupts() {
 	// );
 }
 
-void interrupts_universal_handler(struct interrupt_context *context) {
+void interrupts_kernel_painc_handler(struct interrupt_context *context) {
 	kernel_panic("unhandled interrupt #%x at %x:%x\n\n"
 		  "Registers: \n"
 		  "    EAX: %x" "    EBX: %x" "    ECX: %x" "    EDX: %x\n"
@@ -130,4 +98,8 @@ void interrupts_universal_handler(struct interrupt_context *context) {
 		  context->xmm7_0, context->xmm7_1, context->xmm7_2, context->xmm7_3,
 		  context->error_code,
 		  context->eflags);
+}
+
+void interrupts_interrupt_fowarder(struct interrupt_context *context) {
+	int_config.int_handler(context);
 }

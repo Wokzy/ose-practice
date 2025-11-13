@@ -130,7 +130,7 @@ zero_div:
   idiv eax
 
 [GLOBAL interrupts_collect_context]
-[EXTERN interrupts_universal_handler]
+[EXTERN interrupts_interrupt_fowarder]
 interrupts_collect_context:
   cld
 
@@ -167,7 +167,7 @@ interrupts_collect_context:
   sub esp, eax
 
   push ebx
-  call interrupts_universal_handler
+  call interrupts_interrupt_fowarder
   mov esp, ebx
   popa
 

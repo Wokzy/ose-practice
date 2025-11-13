@@ -23,7 +23,8 @@ void exp() {
 _Noreturn void kernel_entry() {
 	init_printer();
 
-	interrupts_setup_interrupts();
+	struct interrupts_config config = {0, interrupts_kernel_painc_handler};
+	interrupts_setup_interrupts(config);
 	__asm__ volatile (
 		".intel_syntax noprefix\n"
 		"sti\n"
@@ -40,4 +41,6 @@ _Noreturn void kernel_entry() {
 	// 	"jmp __inf_loop\n"
 	// 	".att_syntax\n"
 	// );
+
+	infinite_loop();
 }
