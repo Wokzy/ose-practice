@@ -23,7 +23,7 @@ void exp() {
 _Noreturn void kernel_entry() {
 	init_printer();
 
-	struct interrupts_config config = {0, interrupts_kernel_painc_handler};
+	struct interrupts_config config = {0, 0, interrupts_kernel_painc_handler};
 	interrupts_setup_interrupts(config);
 	__asm__ volatile (
 		".intel_syntax noprefix\n"
@@ -32,7 +32,7 @@ _Noreturn void kernel_entry() {
 	);
 
 	// zero_div();
-	// fake_syscall();
+	fake_syscall();
 
 	// infinite_loop();
 	// __asm__ volatile (

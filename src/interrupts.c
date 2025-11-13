@@ -5,6 +5,7 @@
 #include "panic.h"
 #include "assert.h"
 #include "allocator.h"
+#include "sys.h"
 
 #define INTERRUPTS_TRAMPOLINE_SIZE 8
 #define INTERRUPTS_TALBE_SIZE 256
@@ -55,6 +56,50 @@ static void *gen_idt() {
 	return idt;
 }
 
+#define MASTER_CMD_PORT 0x20
+#define MASTER_DATA_PORT 0x21
+#define SLAVE_CMD_PORT 0xA0
+#define SLAVE_DATA_PORT 0xA1
+
+static void setup_8259() {
+	sys_write_to_port(MASTER_DATA_PORT, 0xff);
+	sys_write_to_port(SLAVE_DATA_PORT, 0xff);
+
+	sys_write_to_port(MASTER_CMD_PORT, 0b00010001);
+	sys_write_to_port(SLAVE_CMD_PORT, 0b00010001);
+
+	for (size_t i = 0; i < 4096; i++) {
+		sys_write_to_port(0x80, 0b1);
+		// __asm__ volatile (
+		// 	".intel_syntax noprefix\n"
+		// 	"cpuid\n"
+		// 	".att_syntax\n"
+		// );
+	}
+
+	sys_write_to_port(MASTER_DATA_PORT, 0x20);
+	sys_write_to_port(SLAVE_DATA_PORT, 0x28);
+
+	for (size_t i = 0; i < 4096; i++) {
+		sys_write_to_port(0x80, 0b1);
+	}
+
+	sys_write_to_port(MASTER_DATA_PORT, 1 << 2);
+	sys_write_to_port(SLAVE_DATA_PORT, 2);
+
+	for (size_t i = 0; i < 4096; i++) {
+		sys_write_to_port(0x80, 0b1);
+	}
+
+	sys_write_to_port(MASTER_DATA_PORT, (int_config.auto_eoi << 1) | 1);
+	sys_write_to_port(SLAVE_DATA_PORT, (int_config.auto_eoi << 1) | 1);
+}
+
+#undef MASTER_CMD_PORT
+#undef MASTER_DATA_PORT
+#undef SLAVE_CMD_PORT
+#undef SLAVE_DATA_PORT
+
 void interrupts_setup_interrupts(struct interrupts_config config) {
 	assert(sizeof(interrupt_desc) == 8);
 	int_config = config;
@@ -62,6 +107,7 @@ void interrupts_setup_interrupts(struct interrupts_config config) {
 	uint16_t idt_limit = INTERRUPTS_TALBE_SIZE * sizeof(interrupt_desc) - 1;
 	uint64_t pseudo_idt = ((uint64_t)idt << 16) | idt_limit;
 	load_interrupt_descrtiptors_table(&pseudo_idt);
+	setup_8259();
 	// __asm__ volatile (
 	// 	".intel_syntax noprefix\n"
 	// 	"lidt [eax]\n"
@@ -70,6 +116,9 @@ void interrupts_setup_interrupts(struct interrupts_config config) {
 	// 	: "a" (&pseudo_idt)
 	// );
 }
+
+#undef INTERRUPTS_TALBE_SIZE
+#undef INTERRUPTS_TRAMPOLINE_SIZE
 
 void interrupts_kernel_painc_handler(struct interrupt_context *context) {
 	kernel_panic("unhandled interrupt #%x at %x:%x\n\n"
@@ -103,3 +152,4 @@ void interrupts_kernel_painc_handler(struct interrupt_context *context) {
 void interrupts_interrupt_fowarder(struct interrupt_context *context) {
 	int_config.int_handler(context);
 }
+

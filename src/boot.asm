@@ -106,6 +106,21 @@ infinite_loop:
   jmp infinite_loop
 
 
+
+[GLOBAL sys_read_from_port]
+sys_read_from_port:
+  mov dx, word [esp + 4]
+  in al, dx
+  ret
+
+[GLOBAL sys_write_to_port]
+sys_write_to_port: ; void sys_write_to_port (uint16_t port, uint8_t byte)
+  mov dx, word [esp + 4]
+  mov al, byte [esp + 8]
+  out dx, al
+  ret
+
+
 [GLOBAL load_interrupt_descrtiptors_table]
 load_interrupt_descrtiptors_table:
   mov eax, dword [esp + 4]

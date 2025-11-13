@@ -37,6 +37,7 @@ struct interrupt_context {
 
 struct interrupts_config {
 	uint8_t is_trap_gate;
+	uint8_t auto_eoi;
 	void (*int_handler) (struct interrupt_context *);
 };
 
