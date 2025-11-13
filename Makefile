@@ -46,7 +46,7 @@ clean:
 	mkdir .tmp
 
 test: build
-	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses
+	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA #-display curses #sdl
 
 debug: build
 	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses -s -S

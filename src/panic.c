@@ -1,9 +1,8 @@
 #include <stdarg.h>
 
+#include "sys.h"
 #include "panic.h"
 #include "printer.h"
-
-void cpu_halt();
 
 void vkernel_panic(const char* msg, va_list args) {
 	/*
@@ -113,7 +112,7 @@ void vkernel_panic(const char* msg, va_list args) {
 	// printf("%%@@@@#..-@%%.:+@@@@*.=@@@%%@@%%.@@@@@-*@@@@@@*@@*.*@@:@@@@@@-@%%.*@@.#@@@@@+ %%@%%:-++");
 	// printf(".:-::.-:.-:.=.===-.==@@#.-+.--===.-.:=-:--::...:--.:::::.:--.:--..-===-: -:-.-++");
 
-	cpu_halt();	
+	sys_cpu_halt();
 }
 
 void kernel_panic(const char* msg, ...) {

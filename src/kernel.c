@@ -6,11 +6,10 @@
 #include "assert.h"
 #include "interrupts.h"
 #include "vga.h"
+#include "sys.h"
+#include "exp.h"
 
-void cpu_halt();
-void fake_syscall();
-void infinite_loop();
-void zero_div();
+
 
 void exp() {
 	while (1) {
@@ -21,18 +20,28 @@ void exp() {
 }
 
 _Noreturn void kernel_entry() {
-	init_printer();
+	// init_printer();
 
-	struct interrupts_config config = {0, 0, interrupts_kernel_painc_handler};
-	interrupts_setup_interrupts(config);
-	__asm__ volatile (
-		".intel_syntax noprefix\n"
-		"sti\n"
-		".att_syntax\n"
-	);
+	// __asm__ volatile (
+	// 	".intel_syntax noprefix\n"
+	// 	"cpuid\n"
+	// 	".att_syntax\n"
+	// );
 
-	// zero_div();
-	fake_syscall();
+	exp_20();
+
+	// printf("HELLO!");
+
+	// struct interrupts_config config = {0, 0, interrupts_kernel_painc_handler};
+	// interrupts_setup_interrupts(config);
+	// __asm__ volatile (
+	// 	".intel_syntax noprefix\n"
+	// 	"sti\n"
+	// 	".att_syntax\n"
+	// );
+
+	// sys_zero_div();
+	// sys_fake_syscall();
 
 	// infinite_loop();
 	// __asm__ volatile (
@@ -42,5 +51,6 @@ _Noreturn void kernel_entry() {
 	// 	".att_syntax\n"
 	// );
 
-	infinite_loop();
+	sys_infinite_loop();
+	// sys_cpu_halt();
 }

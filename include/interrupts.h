@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dtypes.h"
+#include "sys.h"
 
 #pragma pack(push, 1)
 typedef struct {
@@ -41,6 +42,9 @@ struct interrupts_config {
 	void (*int_handler) (struct interrupt_context *);
 };
 
+void interrupts_send_eoi();
 void interrupts_setup_interrupts(struct interrupts_config config);
 void interrupts_kernel_painc_handler(struct interrupt_context *context);
-void interrupts_universal_handler(struct interrupt_context* context);
+void interrupts_interrupt_fowarder(struct interrupt_context* context);
+void interrupts_enable_device(sys_device device);
+void interrupts_disable_device(sys_device device);
