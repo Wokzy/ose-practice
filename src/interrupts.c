@@ -11,7 +11,7 @@
 #define INTERRUPTS_TALBE_SIZE      256
 
 static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
-static struct interrupts_config int_config;
+static interrupts_config int_config;
 
 void interrupts_collect_context();
 void load_interrupt_descrtiptors_table(void *);
@@ -113,7 +113,7 @@ void interrupts_disable_device(sys_device device) {
 #undef SLAVE_CMD_PORT
 #undef SLAVE_DATA_PORT
 
-void interrupts_setup_interrupts(struct interrupts_config config) {
+void interrupts_setup_interrupts(interrupts_config config) {
 	assert(sizeof(interrupt_desc) == 8);
 	int_config = config;
 	void *idt = gen_idt();

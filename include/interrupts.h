@@ -36,14 +36,14 @@ typedef struct {
 	uint32_t eflags;
 } interrupt_context;
 
-struct interrupts_config {
+typedef struct {
 	uint8_t is_trap_gate;
 	uint8_t auto_eoi;
 	void (*int_handler) (interrupt_context *);
-};
+} interrupts_config;
 
 void interrupts_send_eoi();
-void interrupts_setup_interrupts(struct interrupts_config config);
+void interrupts_setup_interrupts(interrupts_config config);
 void interrupts_kernel_painc_handler(interrupt_context *context);
 void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);

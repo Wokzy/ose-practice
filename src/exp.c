@@ -14,14 +14,9 @@ static void sti() {
 	);
 }
 
-static void nop_handler(struct interrupt_context *context) {
-	return;
-}
-
-
 
 void exp_1() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 0,
 		.int_handler = interrupts_kernel_painc_handler
@@ -34,7 +29,7 @@ void exp_1() {
 }
 
 void exp_2() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 0,
 		.int_handler = interrupts_kernel_painc_handler
@@ -50,16 +45,16 @@ void exp_2() {
 
 static size_t global_4 = 0;
 
-static void print_global4_handler(struct interrupt_context *context) {
+static void print_global4_handler(interrupt_context *context) {
 	printf("%d ", global_4++);
 }
 
-static void zero_global4_handler(struct interrupt_context *context) {
+static void zero_global4_handler(interrupt_context *context) {
 	global_4 = 0;
 }
 
 void exp_4() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
 		.int_handler = print_global4_handler
@@ -73,7 +68,7 @@ void exp_4() {
 }
 
 void exp_5() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
 		.int_handler = zero_global4_handler
@@ -88,7 +83,7 @@ void exp_5() {
 }
 
 
-static void print_global4_handler_with_eoi(struct interrupt_context *context) {
+static void print_global4_handler_with_eoi(interrupt_context *context) {
 	printf("%d ", global_4++);
 	// interrupts_send_eoi();
 	// sti();
@@ -100,13 +95,13 @@ static void print_global4_handler_with_eoi(struct interrupt_context *context) {
 	sys_infinite_loop();
 }
 
-static void keyboard_handler(struct interrupt_context *context) {
+static void keyboard_handler(interrupt_context *context) {
 	printf("%x ", sys_read_from_port(0x60));
 }
 
 
 void exp_8() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 0,
 		.int_handler = print_global4_handler_with_eoi
@@ -121,7 +116,7 @@ void exp_8() {
 
 
 void exp_11() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
 		.int_handler = print_global4_handler_with_eoi
@@ -135,7 +130,7 @@ void exp_11() {
 }
 
 void exp_13() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
 		.int_handler = keyboard_handler
@@ -158,7 +153,7 @@ static void wait() {
 	printf("\n");
 }
 
-static void exp20_handler(struct interrupt_context *context) {
+static void exp20_handler(interrupt_context *context) {
 	// printf("hello (%x)", context->vector_index);
 	if (context->vector_index == 0x20) {
 		interrupts_disable_device(TIMER);
@@ -172,7 +167,7 @@ static void exp20_handler(struct interrupt_context *context) {
 }
 
 void exp_20() {
-	struct interrupts_config config = {
+	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
 		.int_handler = exp20_handler
