@@ -18,7 +18,7 @@ typedef struct {
 #pragma pack(pop)
 
 
-struct interrupt_context {
+typedef struct {
 	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
 	uint32_t xmm7_0, xmm7_1, xmm7_2, xmm7_3;
 	uint32_t xmm6_0, xmm6_1, xmm6_2, xmm6_3;
@@ -34,17 +34,17 @@ struct interrupt_context {
 	uint32_t eip;
 	alignas(4) uint16_t cs;
 	uint32_t eflags;
-};
+} interrupt_context;
 
 struct interrupts_config {
 	uint8_t is_trap_gate;
 	uint8_t auto_eoi;
-	void (*int_handler) (struct interrupt_context *);
+	void (*int_handler) (interrupt_context *);
 };
 
 void interrupts_send_eoi();
 void interrupts_setup_interrupts(struct interrupts_config config);
-void interrupts_kernel_painc_handler(struct interrupt_context *context);
-void interrupts_interrupt_fowarder(struct interrupt_context* context);
+void interrupts_kernel_painc_handler(interrupt_context *context);
+void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);
 void interrupts_disable_device(sys_device device);

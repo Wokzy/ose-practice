@@ -19,7 +19,6 @@ void *malloc_undead(size_t size, size_t alignment) {
 	}
 
 	undead_ptr = target + size;
-	// kernel_panic("%x\n", undead_ptr);
 	return (void *)target;
 }
 
