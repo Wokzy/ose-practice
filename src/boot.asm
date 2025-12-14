@@ -96,14 +96,29 @@ gdt:
   dq 0xcf9a000000ffff ; 0b0000000001011001111100110000000000000000000000001111111111111111
 
 [BITS 32]
-[GLOBAL cpu_halt]
-cpu_halt:
+[GLOBAL sys_cpu_halt]
+sys_cpu_halt:
   cli
   hlt
 
-[GLOBAL infinite_loop]
-infinite_loop:
-  jmp infinite_loop
+[GLOBAL sys_infinite_loop]
+sys_infinite_loop:
+  jmp sys_infinite_loop
+
+
+
+[GLOBAL sys_read_from_port]
+sys_read_from_port:
+  mov dx, word [esp + 4]
+  in al, dx
+  ret
+
+[GLOBAL sys_write_to_port]
+sys_write_to_port: ; void sys_write_to_port (uint16_t port, uint8_t byte)
+  mov dx, word [esp + 4]
+  mov al, byte [esp + 8]
+  out dx, al
+  ret
 
 
 [GLOBAL load_interrupt_descrtiptors_table]
@@ -112,8 +127,8 @@ load_interrupt_descrtiptors_table:
   lidt [eax]
   ret
 
-[GLOBAL fake_syscall]
-fake_syscall:
+[GLOBAL sys_fake_syscall]
+sys_fake_syscall:
   mov eax, 1
   mov ebx, 2
   mov edx, 3
@@ -124,13 +139,13 @@ fake_syscall:
   int 0x80
   ret
 
-[GLOBAL zero_div]
-zero_div:
+[GLOBAL sys_zero_div]
+sys_zero_div:
   xor eax, eax
   idiv eax
 
 [GLOBAL interrupts_collect_context]
-[EXTERN interrupts_universal_handler]
+[EXTERN interrupts_interrupt_fowarder]
 interrupts_collect_context:
   cld
 
@@ -167,7 +182,7 @@ interrupts_collect_context:
   sub esp, eax
 
   push ebx
-  call interrupts_universal_handler
+  call interrupts_interrupt_fowarder
   mov esp, ebx
   popa
 
