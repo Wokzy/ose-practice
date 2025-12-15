@@ -34,3 +34,12 @@ void *memset(uint8_t *s, uint8_t c, size_t n) {
 
 	return s;
 }
+
+
+uint32_t setbit(uint32_t n, uint32_t i) {
+	return n | (1 << i);
+}
+
+uint32_t resetbit(uint32_t n, uint32_t i) {
+	return n & (~(1 << i));
+}

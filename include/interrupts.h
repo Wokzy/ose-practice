@@ -48,3 +48,4 @@ void interrupts_kernel_painc_handler(interrupt_context *context);
 void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);
 void interrupts_disable_device(sys_device device);
+void interrupts_setup_default_preset();

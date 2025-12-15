@@ -162,6 +162,12 @@ sys_infinite_loop:
   jmp sys_infinite_loop
 
 
+[GLOBAL sys_read_eflags]
+sys_read_eflags:
+  pushfd
+  pop eax
+  ret
+
 
 [GLOBAL sys_read_from_port]
 sys_read_from_port:
@@ -258,6 +264,18 @@ interrupts_collect_context:
   pop es
   pop ds
   add esp, 8 ; vector index + error code
+  iretd
+
+[GLOBAL sys_jump_to_userspace]
+sys_jump_to_userspace:
+  mov esp, dword [esp + 4]
+  popa
+  pop gs
+  pop fs
+  pop es
+  pop ds
+  add esp, 8 ; vector index + error code
+
   iretd
 
 ; pmemsave 0x7C00 65536 res.bin

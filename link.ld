@@ -61,6 +61,14 @@ SECTIONS {
         *(.bss);
     }
 
+    .userspace : {
+        *(.text);
+        *(.rodata);
+        *(.rodata.*);
+        *(.data);
+        *(.bss);
+    }
+
     /DISCARD/ : {
         *(.eh_frame)
         *(.note.gnu.property)

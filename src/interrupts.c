@@ -159,3 +159,20 @@ void interrupts_interrupt_fowarder(interrupt_context *context) {
 	int_config.int_handler(context);
 }
 
+
+void interrupts_setup_default_preset() {
+	interrupts_config config = {
+		.is_trap_gate = 0,
+		.auto_eoi = 0,
+		.int_handler = interrupts_kernel_painc_handler
+	};
+
+	interrupts_setup_interrupts(config);
+
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"sti\n"
+		".att_syntax\n"
+	);
+}
+
