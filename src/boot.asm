@@ -3,13 +3,13 @@
 cli
 
 ; enable sse
-mov eax, cr0
-and ax, 0xFFFB
-or ax, 0x2
-mov cr0, eax
-mov eax, cr4
-or ax, 3 << 9
-mov cr4, eax
+; mov eax, cr0
+; and ax, 0xFFFB
+; or ax, 0x2
+; mov cr0, eax
+; mov eax, cr4
+; or ax, 3 << 9
+; mov cr4, eax
 
 xor sp, sp
 mov ss, sp
@@ -71,13 +71,22 @@ jmp 0x10:next
 [BITS 32]
 next:
 mov ax, 0x8 ; index = 1, ti = 0, pl = 0
-mov ds, ax ; out =(
+mov ds, ax
 mov ss, ax
 mov es, ax
 mov fs, ax
 mov gs, ax
 
-mov ax, 0x10 ; index = 2, ti = 0, pl = 0
+; mov ax, 0x10 ; index = 2, ti = 0, pl = 0
+mov eax, TSS
+mov word [tss_descriptor + 2], ax
+shr eax, 16
+mov byte [tss_descriptor + 4], al
+mov byte [tss_descriptor + 7], ah
+mov ax, 0x28
+ltr ax
+
+mov ax, 0x10
 
 
 [EXTERN kernel_entry]
@@ -85,15 +94,62 @@ mov ax, 0x10 ; index = 2, ti = 0, pl = 0
 call kernel_entry
 
 gdt_descriptor:
-  dw 0x17
+  dw 0x2f
   dd gdt
 
 ; check sgtd in memory
 align 0x8
 gdt:
   dq 0x0000
-  dq 0xcf92000000ffff ; 0b0000000001001001111100110000000000000000000000001111111111111111
-  dq 0xcf9a000000ffff ; 0b0000000001011001111100110000000000000000000000001111111111111111
+  dq 0xcf92000000ffff ; 0b0000000011001111100100100000000000000000000000001111111111111111 data
+  dq 0xcf9a000000ffff ; 0b0000000011001111100110100000000000000000000000001111111111111111 code
+  dq 0xcff2000000ffff ; 0b0000000011001111111100100000000000000000000000001111111111111111 user data
+  dq 0xcffa000000ffff ; 0b0000000011001111111110100000000000000000000000001111111111111111 user code
+
+  tss_descriptor:
+  dq 0x0089000000006b
+
+
+TSS:
+  .previous_task_link: dd 0
+  .esp0:               dd 0x7c00
+  .ss0:                dw 0x8
+  .reserved0:          dw 0
+  .esp1:               dd 0
+  .ss1:                dw 0
+  .reserved1:          dw 0
+  .esp2:               dd 0
+  .ss2:                dw 0
+  .reserved2:          dw 0
+  .cr3:                dd 0
+  .eip:                dd 0
+  .eflags:             dd 0
+  .eax:                dd 0
+  .ecx:                dd 0
+  .edx:                dd 0
+  .ebx:                dd 0
+  .esp:                dd 0
+  .ebp:                dd 0
+  .esi:                dd 0
+  .edi:                dd 0
+  .es:                 dw 0
+  .reserved3:          dw 0
+  .cs:                 dw 0
+  .reserved4:          dw 0
+  .ss:                 dw 0
+  .reserved5:          dw 0
+  .ds:                 dw 0
+  .reserved6:          dw 0
+  .fs:                 dw 0
+  .reserved7:          dw 0
+  .gs:                 dw 0
+  .reserved8:          dw 0
+  .ldt_selector:       dw 0
+  .reserved9:          dw 0
+  .debug_trap:         dw 0
+  .io_map_base:        dw 108
+  ;.tss_size:           dw 108
+  .ssp:                dd 0
 
 [BITS 32]
 [GLOBAL sys_cpu_halt]
@@ -155,15 +211,15 @@ interrupts_collect_context:
   push gs
 
   ; movdqu xmm0, [pooo]
-  movdqu [esp - 16], xmm0
-  movdqu [esp - 32], xmm1
-  movdqu [esp - 48], xmm2
-  movdqu [esp - 64], xmm3
-  movdqu [esp - 80], xmm4
-  movdqu [esp - 96], xmm5
-  movdqu [esp - 112], xmm6
-  movdqu [esp - 128], xmm7
-  sub esp, 128
+  ; movdqu [esp - 16], xmm0
+  ; movdqu [esp - 32], xmm1
+  ; movdqu [esp - 48], xmm2
+  ; movdqu [esp - 64], xmm3
+  ; movdqu [esp - 80], xmm4
+  ; movdqu [esp - 96], xmm5
+  ; movdqu [esp - 112], xmm6
+  ; movdqu [esp - 128], xmm7
+  ; sub esp, 128
   pusha
 
   mov ax, 0x8
@@ -186,16 +242,16 @@ interrupts_collect_context:
   mov esp, ebx
   popa
 
-  movdqu xmm7, [esp]
-  movdqu xmm6, [esp + 16]
-  movdqu xmm5, [esp + 32]
-  movdqu xmm4, [esp + 48]
-  movdqu xmm3, [esp + 64]
-  movdqu xmm2, [esp + 80]
-  movdqu xmm1, [esp + 96]
-  movdqu xmm0, [esp + 112]
+  ; movdqu xmm7, [esp]
+  ; movdqu xmm6, [esp + 16]
+  ; movdqu xmm5, [esp + 32]
+  ; movdqu xmm4, [esp + 48]
+  ; movdqu xmm3, [esp + 64]
+  ; movdqu xmm2, [esp + 80]
+  ; movdqu xmm1, [esp + 96]
+  ; movdqu xmm0, [esp + 112]
 
-  add esp, 128
+  ; add esp, 128
 
   pop gs
   pop fs

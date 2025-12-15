@@ -14,3 +14,22 @@ typedef enum {
 	TIMER,
 	KEYBOARD,
 } sys_device;
+
+
+#pragma pack(push, 1)
+typedef struct {
+	uint16_t limit_0_15      : 16;
+	uint16_t base_0_15       : 16;
+	uint8_t  base_16_23      : 8;
+	uint8_t  desc_type       : 3;
+	uint8_t  S               : 1;
+	uint8_t  DPL             : 2;
+	uint8_t  P               : 1;
+	uint16_t limit_16_19     : 4;
+	uint16_t AVL             : 1;
+	uint16_t zero            : 1;
+	uint16_t d_b             : 1;
+	uint16_t g               : 1;
+	uint16_t base_24_31      : 1;
+} gdt_desc;
+#pragma pack(pop)
