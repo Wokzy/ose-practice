@@ -114,42 +114,8 @@ TSS:
   .previous_task_link: dd 0
   .esp0:               dd 0x7c00
   .ss0:                dw 0x8
-  .reserved0:          dw 0
-  .esp1:               dd 0
-  .ss1:                dw 0
-  .reserved1:          dw 0
-  .esp2:               dd 0
-  .ss2:                dw 0
-  .reserved2:          dw 0
-  .cr3:                dd 0
-  .eip:                dd 0
-  .eflags:             dd 0
-  .eax:                dd 0
-  .ecx:                dd 0
-  .edx:                dd 0
-  .ebx:                dd 0
-  .esp:                dd 0
-  .ebp:                dd 0
-  .esi:                dd 0
-  .edi:                dd 0
-  .es:                 dw 0
-  .reserved3:          dw 0
-  .cs:                 dw 0
-  .reserved4:          dw 0
-  .ss:                 dw 0
-  .reserved5:          dw 0
-  .ds:                 dw 0
-  .reserved6:          dw 0
-  .fs:                 dw 0
-  .reserved7:          dw 0
-  .gs:                 dw 0
-  .reserved8:          dw 0
-  .ldt_selector:       dw 0
-  .reserved9:          dw 0
-  .debug_trap:         dw 0
-  .io_map_base:        dw 108
-  ;.tss_size:           dw 108
-  .ssp:                dd 0
+  times 96 db 0
+
 
 [BITS 32]
 [GLOBAL sys_cpu_halt]
@@ -205,6 +171,12 @@ sys_fake_syscall:
 sys_zero_div:
   xor eax, eax
   idiv eax
+
+[GLOBAL sys_break_gdt]
+sys_break_gdt:
+  mov dword [gdt + 16], 0
+  mov dword [gdt + 20], 0
+  ret
 
 [GLOBAL interrupts_collect_context]
 [EXTERN interrupts_interrupt_fowarder]

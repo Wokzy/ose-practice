@@ -5,10 +5,12 @@
 #include "panic.h"
 #include "assert.h"
 #include "allocator.h"
+#include "syscall.h"
 #include "sys.h"
 
 #define INTERRUPTS_TRAMPOLINE_SIZE 8
 #define INTERRUPTS_TALBE_SIZE      256
+#define SYSCALL_VECTOR             0x80
 
 static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
 static interrupts_config int_config;
@@ -52,6 +54,9 @@ static void *gen_idt() {
 		idt[vector].P = 0b1;
 		idt[vector].offset_high = ((size_t)(tramps + INTERRUPTS_TRAMPOLINE_SIZE * vector) >> 16) & 0xFFFF;
 	}
+
+	idt[SYSCALL_VECTOR].dpl = 0b11;
+	idt[SYSCALL_VECTOR+1].dpl = 0b11;
 
 	return idt;
 }
@@ -163,7 +168,7 @@ void interrupts_interrupt_fowarder(interrupt_context *context) {
 void interrupts_setup_default_preset() {
 	interrupts_config config = {
 		.is_trap_gate = 0,
-		.auto_eoi = 0,
+		.auto_eoi = 1,
 		.int_handler = interrupts_kernel_painc_handler
 	};
 

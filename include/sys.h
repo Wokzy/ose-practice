@@ -9,6 +9,7 @@ void sys_cpu_halt();
 void sys_fake_syscall();
 void sys_infinite_loop();
 void sys_zero_div();
+void sys_break_gdt();
 void sys_jump_to_userspace(void *);
 uint32_t sys_read_eflags();
 

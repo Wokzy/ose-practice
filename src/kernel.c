@@ -18,11 +18,13 @@ void user_function() {
 }
 
 _Noreturn void kernel_entry() {
-	// init_printer();
-	interrupts_setup_default_preset();
+	init_printer();
+	// interrupts_setup_default_preset();
 
-	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
-	userspace_enter_userspace(user_function, user_stack);
+	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
+	// userspace_enter_userspace(exp_5, user_stack);
+
+	exp_10_init();
 
 	// __asm__ volatile (
 	// 	".intel_syntax noprefix\n"
