@@ -102,12 +102,12 @@ void exp_6_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
+	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
 	userspace_enter_userspace(exp_6, user_stack);
 }
 
 static void exp_7() {
-	// sys_break_gdt();
+	sys_break_gdt();
 	for (;;)
 		printf("%u ", some_global++);
 }
@@ -127,7 +127,7 @@ void exp_7_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
+	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
 	userspace_enter_userspace(exp_7, user_stack);
 }
 
@@ -167,7 +167,7 @@ void exp_10_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
+	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
 	userspace_enter_userspace(exp_10, user_stack);
 }
 

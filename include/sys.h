@@ -36,3 +36,10 @@ typedef struct {
 	uint16_t base_24_31      : 1;
 } gdt_desc;
 #pragma pack(pop)
+
+#define SYS_EFLAG_IOPL_0 12
+#define SYS_EFLAG_IOPL_1 13
+#define SYS_EFLAG_IF 9
+
+#define SYS_GDT_USER_CODE 0x23
+#define SYS_GDT_USER_DATA 0x1b

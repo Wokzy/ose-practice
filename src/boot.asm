@@ -14,8 +14,6 @@ cli
 xor sp, sp
 mov ss, sp
 mov ds, sp
-; mov ax, 0x7C0
-; mov ds, ax
 mov ax, 0x7c00
 mov sp, ax
 
@@ -66,31 +64,24 @@ mov eax, cr0
 or eax, 1
 mov cr0, eax
 
-jmp 0x10:next
+jmp sys_code_selector:next
 
 [BITS 32]
 next:
-mov ax, 0x8 ; index = 1, ti = 0, pl = 0
+mov ax, sys_data_selector ; index = 1, ti = 0, pl = 0
 mov ds, ax
 mov ss, ax
 mov es, ax
 mov fs, ax
 mov gs, ax
 
-; mov ax, 0x10 ; index = 2, ti = 0, pl = 0
-mov eax, TSS
-mov word [tss_descriptor + 2], ax
-shr eax, 16
-mov byte [tss_descriptor + 4], al
-mov byte [tss_descriptor + 7], ah
-mov ax, 0x28
+mov ax, tss_selector
 ltr ax
 
-mov ax, 0x10
+mov ax, sys_code_selector
 
 
 [EXTERN kernel_entry]
-; sti
 call kernel_entry
 
 gdt_descriptor:
@@ -100,6 +91,9 @@ gdt_descriptor:
 ; check sgtd in memory
 align 0x8
 gdt:
+  sys_data_selector equ 0x08
+  sys_code_selector equ 0x10
+  tss_selector      equ 0x28
   dq 0x0000
   dq 0xcf92000000ffff ; 0b0000000011001111100100100000000000000000000000001111111111111111 data
   dq 0xcf9a000000ffff ; 0b0000000011001111100110100000000000000000000000001111111111111111 code
@@ -107,14 +101,17 @@ gdt:
   dq 0xcffa000000ffff ; 0b0000000011001111111110100000000000000000000000001111111111111111 user code
 
   tss_descriptor:
-  dq 0x0089000000006b
+  ; dq 0x0089000000006b
+  dw 0x0067
+  dw TSS
+  dd 0x00008900
 
 
 TSS:
   .previous_task_link: dd 0
   .esp0:               dd 0x7c00
-  .ss0:                dw 0x8
-  times 96 db 0
+  .ss0:                dw sys_data_selector
+  ; times 96 db 0
 
 
 [BITS 32]
@@ -200,7 +197,7 @@ interrupts_collect_context:
   ; sub esp, 128
   pusha
 
-  mov ax, 0x8
+  mov ax, sys_data_selector
   mov ds, ax
   mov es, ax
   mov fs, ax
@@ -218,6 +215,8 @@ interrupts_collect_context:
   push ebx
   call interrupts_interrupt_fowarder
   mov esp, ebx
+
+  __restore_context:
   popa
 
   ; movdqu xmm7, [esp]
@@ -241,14 +240,7 @@ interrupts_collect_context:
 [GLOBAL sys_jump_to_userspace]
 sys_jump_to_userspace:
   mov esp, dword [esp + 4]
-  popa
-  pop gs
-  pop fs
-  pop es
-  pop ds
-  add esp, 8 ; vector index + error code
-
-  iretd
+  jmp __restore_context
 
 ; pmemsave 0x7C00 65536 res.bin
 

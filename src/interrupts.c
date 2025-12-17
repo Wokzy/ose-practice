@@ -12,7 +12,7 @@
 #define INTERRUPTS_TALBE_SIZE      256
 #define SYSCALL_VECTOR             0x80
 
-static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
+static uint8_t int_with_error_code[10] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
 static interrupts_config int_config;
 
 void interrupts_collect_context();
@@ -56,7 +56,7 @@ static void *gen_idt() {
 	}
 
 	idt[SYSCALL_VECTOR].dpl = 0b11;
-	idt[SYSCALL_VECTOR+1].dpl = 0b11;
+	// idt[SYSCALL_VECTOR+1].dpl = 0b11;
 
 	return idt;
 }

@@ -22,7 +22,7 @@ _Noreturn void kernel_entry() {
 	// interrupts_setup_default_preset();
 
 	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
-	// userspace_enter_userspace(exp_5, user_stack);
+	// userspace_enter_userspace(exp_7, user_stack);
 
 	exp_10_init();
 

@@ -8,18 +8,18 @@
 
 void userspace_enter_userspace(void *entry_point_ptr, void *stack_ptr) {
 	userspace_enter_context context;
-	context.context.cs = 0x23;
-	context.context.gs = 0x1b;
-	context.context.fs = 0x1b;
-	context.context.es = 0x1b;
-	context.context.ds = 0x1b;
+	context.context.cs = SYS_GDT_USER_CODE;
+	context.context.gs = SYS_GDT_USER_DATA;
+	context.context.fs = SYS_GDT_USER_DATA;
+	context.context.es = SYS_GDT_USER_DATA;
+	context.context.ds = SYS_GDT_USER_DATA;
 	context.context.eip = (uint32_t)entry_point_ptr;
 	context.context.eflags = sys_read_eflags(); // https://wiki.osdev.org/CPU_Registers_x86#EFLAGS_Register
-	context.context.eflags = resetbit(context.context.eflags, 12);
-	context.context.eflags = resetbit(context.context.eflags, 13);
-	context.context.eflags = setbit(context.context.eflags, 9);
+	context.context.eflags = resetbit(context.context.eflags, SYS_EFLAG_IOPL_0);
+	context.context.eflags = resetbit(context.context.eflags, SYS_EFLAG_IOPL_1);
+	context.context.eflags = setbit(context.context.eflags, SYS_EFLAG_IF);
 	context.esp = stack_ptr;
-	context.ss = 0x1b;
+	context.ss = SYS_GDT_USER_DATA;
 
 	sys_jump_to_userspace(&context);
 }
