@@ -20,14 +20,14 @@ typedef struct {
 
 typedef struct {
 	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-	uint32_t xmm7_0, xmm7_1, xmm7_2, xmm7_3;
-	uint32_t xmm6_0, xmm6_1, xmm6_2, xmm6_3;
-	uint32_t xmm5_0, xmm5_1, xmm5_2, xmm5_3;
-	uint32_t xmm4_0, xmm4_1, xmm4_2, xmm4_3;
-	uint32_t xmm3_0, xmm3_1, xmm3_2, xmm3_3;
-	uint32_t xmm2_0, xmm2_1, xmm2_2, xmm2_3;
-	uint32_t xmm1_0, xmm1_1, xmm1_2, xmm1_3;
-	uint32_t xmm0_0, xmm0_1, xmm0_2, xmm0_3;
+	// uint32_t xmm7_0, xmm7_1, xmm7_2, xmm7_3;
+	// uint32_t xmm6_0, xmm6_1, xmm6_2, xmm6_3;
+	// uint32_t xmm5_0, xmm5_1, xmm5_2, xmm5_3;
+	// uint32_t xmm4_0, xmm4_1, xmm4_2, xmm4_3;
+	// uint32_t xmm3_0, xmm3_1, xmm3_2, xmm3_3;
+	// uint32_t xmm2_0, xmm2_1, xmm2_2, xmm2_3;
+	// uint32_t xmm1_0, xmm1_1, xmm1_2, xmm1_3;
+	// uint32_t xmm0_0, xmm0_1, xmm0_2, xmm0_3;
 	alignas(4) uint16_t gs, fs, es, ds;
 	alignas(4) uint8_t vector_index;
 	uint32_t error_code;
@@ -48,3 +48,4 @@ void interrupts_kernel_painc_handler(interrupt_context *context);
 void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);
 void interrupts_disable_device(sys_device device);
+void interrupts_setup_default_preset();

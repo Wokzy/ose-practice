@@ -5,12 +5,14 @@
 #include "panic.h"
 #include "assert.h"
 #include "allocator.h"
+#include "syscall.h"
 #include "sys.h"
 
 #define INTERRUPTS_TRAMPOLINE_SIZE 8
 #define INTERRUPTS_TALBE_SIZE      256
+#define SYSCALL_VECTOR             0x80
 
-static uint8_t int_with_error_code[8] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
+static uint8_t int_with_error_code[10] = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15, 0x1D, 0x1E};
 static interrupts_config int_config;
 
 void interrupts_collect_context();
@@ -52,6 +54,9 @@ static void *gen_idt() {
 		idt[vector].P = 0b1;
 		idt[vector].offset_high = ((size_t)(tramps + INTERRUPTS_TRAMPOLINE_SIZE * vector) >> 16) & 0xFFFF;
 	}
+
+	idt[SYSCALL_VECTOR].dpl = 0b11;
+	// idt[SYSCALL_VECTOR+1].dpl = 0b11;
 
 	return idt;
 }
@@ -132,30 +137,47 @@ void interrupts_kernel_painc_handler(interrupt_context *context) {
 		  "    EAX: %x" "    EBX: %x" "    ECX: %x" "    EDX: %x\n"
 		  "    EDI: %x" "    ESI: %x" "    ESP: %x" "    EBP: %x\n"
 		  "    DS : %x" "    ES : %x" "    GS : %x" "    FS : %x\n"
-		  "    XMM0: %x%x%x%x                                   \n"
-		  "    XMM1: %x%x%x%x                                   \n"
-		  "    XMM2: %x%x%x%x                                   \n"
-		  "    XMM3: %x%x%x%x                                   \n"
-		  "    XMM4: %x%x%x%x                                   \n"
-		  "    XMM5: %x%x%x%x                                   \n"
-		  "    XMM6: %x%x%x%x                                   \n"
-		  "    XMM7: %x%x%x%x                                   \n\n"
+		  // "    XMM0: %x%x%x%x                                   \n"
+		  // "    XMM1: %x%x%x%x                                   \n"
+		  // "    XMM2: %x%x%x%x                                   \n"
+		  // "    XMM3: %x%x%x%x                                   \n"
+		  // "    XMM4: %x%x%x%x                                   \n"
+		  // "    XMM5: %x%x%x%x                                   \n"
+		  // "    XMM6: %x%x%x%x                                   \n"
+		  // "    XMM7: %x%x%x%x                                   \n\n"
 		  "Error code: %x\n\n"
 		  "EFLAGS: %x\n", context->vector_index, context->cs, context->eip, context->eax, context->ebx, context->ecx, context->edx,
 		  context->edi, context->esi, context->esp, context->ebp, context->ds, context->es, context->gs, context->fs,
-		  context->xmm0_0, context->xmm0_1, context->xmm0_2, context->xmm0_3,
-		  context->xmm1_0, context->xmm1_1, context->xmm1_2, context->xmm1_3,
-		  context->xmm2_0, context->xmm2_1, context->xmm2_2, context->xmm2_3,
-		  context->xmm3_0, context->xmm3_1, context->xmm3_2, context->xmm3_3,
-		  context->xmm4_0, context->xmm4_1, context->xmm4_2, context->xmm4_3,
-		  context->xmm5_0, context->xmm5_1, context->xmm5_2, context->xmm5_3,
-		  context->xmm6_0, context->xmm6_1, context->xmm6_2, context->xmm6_3,
-		  context->xmm7_0, context->xmm7_1, context->xmm7_2, context->xmm7_3,
+		  // context->xmm0_0, context->xmm0_1, context->xmm0_2, context->xmm0_3,
+		  // context->xmm1_0, context->xmm1_1, context->xmm1_2, context->xmm1_3,
+		  // context->xmm2_0, context->xmm2_1, context->xmm2_2, context->xmm2_3,
+		  // context->xmm3_0, context->xmm3_1, context->xmm3_2, context->xmm3_3,
+		  // context->xmm4_0, context->xmm4_1, context->xmm4_2, context->xmm4_3,
+		  // context->xmm5_0, context->xmm5_1, context->xmm5_2, context->xmm5_3,
+		  // context->xmm6_0, context->xmm6_1, context->xmm6_2, context->xmm6_3,
+		  // context->xmm7_0, context->xmm7_1, context->xmm7_2, context->xmm7_3,
 		  context->error_code,
 		  context->eflags);
 }
 
 void interrupts_interrupt_fowarder(interrupt_context *context) {
 	int_config.int_handler(context);
+}
+
+
+void interrupts_setup_default_preset() {
+	interrupts_config config = {
+		.is_trap_gate = 0,
+		.auto_eoi = 1,
+		.int_handler = interrupts_kernel_painc_handler
+	};
+
+	interrupts_setup_interrupts(config);
+
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"sti\n"
+		".att_syntax\n"
+	);
 }
 

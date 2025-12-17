@@ -1,26 +1,30 @@
 
+#include "vga.h"
+#include "sys.h"
+#include "exp.h"
+#include "assert.h"
 #include "dtypes.h"
 #include "memory.h"
 #include "printer.h"
 #include "allocator.h"
-#include "assert.h"
+#include "userspace.h"
 #include "interrupts.h"
-#include "vga.h"
-#include "sys.h"
-#include "exp.h"
 
 
 
-void exp() {
-	while (1) {
-		size_t ptr = (size_t)calloc_undead(15, 16);
-		assert((ptr % 16) == 0);
-		printf("0x%x\n", ptr);
-	}
+void user_function() {
+	printf("from user!!!!\n");
+	sys_infinite_loop();
 }
 
 _Noreturn void kernel_entry() {
-	// init_printer();
+	init_printer();
+	// interrupts_setup_default_preset();
+
+	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
+	// userspace_enter_userspace(exp_7, user_stack);
+
+	exp_10_init();
 
 	// __asm__ volatile (
 	// 	".intel_syntax noprefix\n"
@@ -28,7 +32,7 @@ _Noreturn void kernel_entry() {
 	// 	".att_syntax\n"
 	// );
 
-	exp_20();
+	// exp_20();
 
 	// printf("HELLO!");
 
