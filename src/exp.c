@@ -167,7 +167,6 @@ void exp_10_init() {
 
 	interrupts_setup_interrupts(config);
 	interrupts_enable_device(TIMER);
-	allocator_init_paging();
 	sti();
 
 

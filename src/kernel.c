@@ -20,7 +20,7 @@ void user_function() {
 _Noreturn void kernel_entry() {
 	init_printer();
 	// interrupts_setup_default_preset();
-	// allocator_init_paging();
+	allocator_init_paging();
 
 	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
 	// userspace_enter_userspace(exp_7, user_stack);

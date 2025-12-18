@@ -18,7 +18,7 @@ void *malloc_undead(size_t size, size_t alignment) {
 	size_t target = (undead_ptr % alignment) > 0 ? undead_ptr + (alignment - (undead_ptr % alignment)) : undead_ptr;
 	assert((target % alignment) == 0);
 
-	if (target > UNDEAD_PTR_INIT + UNDEAD_SIZE) {
+	if (target + size > UNDEAD_PTR_INIT + UNDEAD_SIZE) {
 		kernel_panic("out of memory for undead objects");
 	}
 
@@ -70,15 +70,25 @@ void allocator_free_page(void *ptr) {
 
 
 void allocator_init_paging() {
-	uint32_t *pde_ptr = 0;
+	assert(sizeof(sys_page_directory_entry) == 4);
+	assert(sizeof(sys_page_table_entry) == 4);
 
-	pde_ptr = (uint32_t *)calloc_undead(0x400 * 4, 1);
-	pde_ptr[0] = setbit(pde_ptr[0], 0); // enable page
-	pde_ptr[0] = setbit(pde_ptr[0], 1); // enable read/write
-	pde_ptr[0] = setbit(pde_ptr[0], 2); // US bit
-	pde_ptr[0] = setbit(pde_ptr[0], 7); // PS
+	sys_page_directory_entry *pde_ptr = (sys_page_directory_entry *)calloc_undead(0x400 * 4, 0x1000);
+	sys_page_table_entry *page_table_addr = (sys_page_table_entry *)calloc_undead(0x400 * 4, 0x1000);
 
-	sys_enable_paging(pde_ptr);
+	for (uint32_t i = 0; i < 0x400; i++) {
+		page_table_addr[i].frame_addr = i;
+		page_table_addr[i].us = 1;
+		page_table_addr[i].rw = 1;
+		page_table_addr[i].enabled = 1;
+	}
+
+	pde_ptr[0].page_table_addr = ((uint32_t)page_table_addr) >> 12;
+	pde_ptr[0].us = 1;
+	pde_ptr[0].rw = 1;
+	pde_ptr[0].enabled = 1;
+
+	sys_init_paging(pde_ptr);
 }
 
 

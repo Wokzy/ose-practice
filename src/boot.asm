@@ -242,8 +242,8 @@ sys_jump_to_userspace:
   mov esp, dword [esp + 4]
   jmp __restore_context
 
-[GLOBAL sys_enable_paging]
-sys_enable_paging:
+[GLOBAL sys_init_paging]
+sys_init_paging:
   mov eax, dword [esp + 4]
   mov cr3, eax
 
