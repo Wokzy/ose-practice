@@ -2,6 +2,7 @@
 #include "exp.h"
 #include "sys.h"
 #include "dtypes.h"
+#include "assert.h"
 #include "printer.h"
 #include "interrupts.h"
 #include "userspace.h"
@@ -133,6 +134,7 @@ void exp_7_init() {
 
 static void exp_10() {
 	// sys_break_gdt();
+	// assert(2 == 3);
 
 	for (;;) {
 		printf("%u ", some_global);
@@ -165,7 +167,9 @@ void exp_10_init() {
 
 	interrupts_setup_interrupts(config);
 	interrupts_enable_device(TIMER);
+	allocator_init_paging();
 	sti();
+
 
 	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
 	userspace_enter_userspace(exp_10, user_stack);

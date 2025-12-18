@@ -242,6 +242,22 @@ sys_jump_to_userspace:
   mov esp, dword [esp + 4]
   jmp __restore_context
 
+[GLOBAL sys_enable_paging]
+sys_enable_paging:
+  mov eax, dword [esp + 4]
+  mov cr3, eax
+
+  mov eax, cr4
+  or eax, 0x10
+  mov cr4, eax ; PSE
+
+  mov eax, cr0
+  mov edx, 1
+  shl edx, 31
+  or eax, edx
+  mov cr0, eax
+  ret
+
 ; pmemsave 0x7C00 65536 res.bin
 
 pooo:
