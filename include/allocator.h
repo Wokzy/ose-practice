@@ -9,3 +9,4 @@ void *allocator_alloc_page();
 void allocator_free_page(void *ptr);
 
 sys_page_directory_entry *allocator_init_userspace_paging();
+void *allocator_free_pde(sys_page_directory_entry *pde);

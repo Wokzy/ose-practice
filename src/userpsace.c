@@ -23,17 +23,17 @@
 */
 
 
-static uint32_t get_cr0() {
-	uint32_t cr0;
+static sys_page_directory_entry *get_cr3() {
+	sys_page_directory_entry *cr3;
 
 	__asm__ volatile (
 		".intel_syntax noprefix\n"
-		"mov %0, cr0\n"
+		"mov %0, cr3\n"
 		".att_syntax\n"
-		: "=r" (cr0)
+		: "=r" (cr3)
 	);
 
-	return cr0;
+	return cr3;
 }
 
 static void goto_user_entry_point(void *entry_point_ptr) {
@@ -83,13 +83,57 @@ _Noreturn void userspace_enter_userspace(void *entry_point_ptr) {
 
 
 static void userspace_exit(uint32_t status) {
-	assert((get_cr0() & (1 << 31)) == 0);
-	printf("STATUS: %x ", status);
 	userspace_enter_userspace(tmp_);
 }
 
 
 _Noreturn void userspace_exit_forwarder(uint32_t status) {
 	sys_disable_paging();
+	if (status == 0) {
+		printf("OOM!!!\n");
+	} else {
+		printf("STATUS: %x\n", status);
+	}
+
+	allocator_free_pde(get_cr3());
+
 	userspace_exit(status);
+}
+
+
+void userspace_maybe_allocate_new_page(uint32_t cr2) {
+	sys_page_directory_entry *pde = (sys_page_directory_entry *)get_cr3();
+	sys_virtual_addr addr = *(sys_virtual_addr *)(&cr2);
+	// kernel_panic("%x %x %x %x", addr.page_directory_index, addr.page_table_index, addr.offset, cr2);
+
+	sys_disable_paging();
+
+	if (!pde[addr.page_directory_index].enabled) {
+		pde[addr.page_directory_index].page_table_addr = ((uint32_t)allocator_alloc_page()) >> 12;
+
+		if (pde[addr.page_directory_index].page_table_addr == 0)
+			userspace_exit_forwarder(0);
+
+		pde[addr.page_directory_index].us = 1;
+		pde[addr.page_directory_index].rw = 1;
+		pde[addr.page_directory_index].enabled = 1;
+
+	}
+
+	sys_page_table_entry *pte = (sys_page_table_entry *)(pde[addr.page_directory_index].page_table_addr << 12);
+
+
+	if (!pte[addr.page_table_index].enabled) {
+		pte[addr.page_table_index].frame_addr = ((uint32_t)allocator_alloc_page() >> 12);
+		// kernel_panic("hello? %x", pte[addr.page_table_index].frame_addr);
+
+		if (pte[addr.page_table_index].frame_addr == 0)
+			userspace_exit_forwarder(0);
+
+		pte[addr.page_table_index].us = 1;
+		pte[addr.page_table_index].rw = 1;
+		pte[addr.page_table_index].enabled = 1;
+	}
+
+	sys_enable_paging(pde);
 }

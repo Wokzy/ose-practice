@@ -84,7 +84,7 @@ void vkernel_panic(const char* msg, va_list args) {
 
 	*/
 	
-	printer_clear_screen();
+	// printer_clear_screen();
 	printf("Kernel PANIC: ");
 	vprintf(msg, args);
 	

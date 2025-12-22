@@ -2,6 +2,7 @@
 #include "sys.h"
 #include "dtypes.h"
 #include "panic.h"
+#include "printer.h"
 #include "memory.h"
 #include "assert.h"
 
@@ -43,8 +44,9 @@ static inline void init_page_arena() {
 }
 
 void *allocator_alloc_page() {
-	if (free_page_counter == 0)
-		kernel_panic("no free memory pages left");
+	if (free_page_counter == 0) {
+		return 0;
+	}
 
 	if (free_page_ptr == 0)
 		init_page_arena();
@@ -59,6 +61,11 @@ void *allocator_alloc_page() {
 }
 
 void allocator_free_page(void *ptr) {
+
+	if ((size_t) ptr < SYS_PAGE_PTR_INIT) {
+		kernel_panic("error on free: %x", ptr);
+	}
+
 	void **old_ptr = (void **)ptr;
 	*old_ptr = (void *)free_page_ptr;
 	free_page_ptr = (size_t)old_ptr;
@@ -70,12 +77,14 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 	assert(sizeof(sys_page_directory_entry) == 4);
 	assert(sizeof(sys_page_table_entry) == 4);
 
+	// printf("%u\n", free_page_counter);
+
 	sys_page_directory_entry *pde_ptr = (sys_page_directory_entry *)allocator_alloc_page();
 	sys_page_table_entry *page_table_addr = (sys_page_table_entry *)allocator_alloc_page();
 
-	for (uint32_t i = 0; i < SYS_PD_SIZE; i++) {
+	for (size_t i = 0; i < SYS_PD_SIZE; i++) {
 		page_table_addr[i].frame_addr = i;
-		page_table_addr[i].us = ((i <= 0x80) || (i >= 0x100)); // for vga protection
+		page_table_addr[i].us = (((i < 0x80) || (i >= 0x400)) && (i > 0x1)); // for kernel protection
 		page_table_addr[i].rw = 1;
 		page_table_addr[i].enabled = 1;
 	}
@@ -89,10 +98,27 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 }
 
 
-void mmap_simple() {
-	sys_disable_paging();
-}
+void *allocator_free_pde(sys_page_directory_entry *pde) {
 
+	for (size_t i = 1; i < SYS_PD_SIZE; i++) {
+		if (!pde[i].enabled)
+			continue;
+
+		sys_page_table_entry *pte = (sys_page_table_entry *)(pde[i].page_table_addr << 12);
+
+		for (size_t j = 0; j < SYS_PD_SIZE; j++) {
+			if (!pte[j].enabled)
+				continue;
+
+			allocator_free_page((void *)(pte[j].frame_addr << 12));
+		}
+
+		allocator_free_page((void *)pte);
+	}
+
+	allocator_free_page((void*)(pde[0].page_table_addr << 12));
+	allocator_free_page((void *)pde);
+}
 
 #undef UNDEAD_PTR_INIT
 #undef UNDEAD_SIZE

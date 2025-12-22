@@ -22,33 +22,47 @@ static void sti() {
 uint32_t some_global = 0;
 
 static void exp_10() {
-	// for (;;) {
+	// if (some_global % 4 == 0) {
+	// 	for (;;) {
+	// 		__asm__ volatile (
+	// 			".intel_syntax noprefix\n"
+	// 			"sub esp, 4096\n"
+	// 			"mov dword [esp], eax\n"
+	// 			".att_syntax\n"
+	// 		);
+	// 	}
+	// } else if (some_global % 4 == 1) {
 	// 	__asm__ volatile (
 	// 		".intel_syntax noprefix\n"
-	// 		"push eax\n"
-	// 		"push ebx\n"
-	// 		"mov eax, 0x10\n"
-	// 		"mov ebx, %0\n"
-	// 		"int 0x80\n"
-	// 		"pop eax\n"
-	// 		"pop ebx\n"
+	// 		"mov eax, 0x42\n"
+	// 		"mov dword [eax], esp\n"
 	// 		".att_syntax\n"
-	// 		:
-	// 		: "r" (some_global)
+	// 	);
+	// } else if (some_global % 4 == 2) {
+	// 	sys_exit(some_global);
+	// } else {
+	// 	__asm__ volatile (
+	// 		".intel_syntax noprefix\n"
+	// 		"mov eax, 0x900000\n"
+	// 		"mov dword [eax], esp\n"
+	// 		".att_syntax\n"
 	// 	);
 	// }
 
-	sys_exit(some_global);
+	sys_exit(sys_n_rec(some_global));
+
 }
 
 static void exp_10_handler(interrupt_context *context) {
+	some_global++;
 	if (context->vector_index == 0x80) {
 		// printf("%u ", some_global);
-		some_global++;
 		syscall(context);
 	}
 	else if (context->vector_index == 0x20) {
-		some_global = 0;
+		// some_global = 0;
+	} else if (context->vector_index == 0x0e) {
+		interrupts_page_fault_handler(context);
 	} else {
 		interrupts_kernel_painc_handler(context);
 	}
@@ -65,7 +79,6 @@ void exp_10_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
 	userspace_enter_userspace(exp_10);
 }
 
