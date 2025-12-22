@@ -13,3 +13,4 @@ typedef struct {
 
 
 _Noreturn void userspace_enter_userspace(void *entry_point_ptr);
+_Noreturn void userspace_exit_forwarder(uint32_t status);

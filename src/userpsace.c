@@ -5,6 +5,8 @@
 #include "memory.h"
 #include "userspace.h"
 #include "allocator.h"
+#include "printer.h"
+#include "panic.h"
 #include "assert.h"
 
 
@@ -21,21 +23,33 @@
 */
 
 
+static uint32_t get_cr0() {
+	uint32_t cr0;
+
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"mov %0, cr0\n"
+		".att_syntax\n"
+		: "=r" (cr0)
+	);
+
+	return cr0;
+}
+
 static void goto_user_entry_point(void *entry_point_ptr) {
 	assert(sizeof(sys_virtual_addr) == sizeof(void *));
 
 	sys_page_directory_entry *pde = allocator_init_userspace_paging();
 	sys_page_table_entry *stack_pte = allocator_alloc_page();
-	pde[SYS_PD_SIZE - 1].page_table_addr = (uint32_t)stack_pte;
+	pde[SYS_PD_SIZE - 1].page_table_addr = ((uint32_t)stack_pte) >> 12;
 	pde[SYS_PD_SIZE - 1].us = 1;
 	pde[SYS_PD_SIZE - 1].rw = 1;
 	pde[SYS_PD_SIZE - 1].enabled = 1;
 
-	stack_pte[SYS_PD_SIZE - 1].frame_addr = (uint32_t)allocator_alloc_page();
+	stack_pte[SYS_PD_SIZE - 1].frame_addr = ((uint32_t)allocator_alloc_page()) >> 12;
 	stack_pte[SYS_PD_SIZE - 1].us = 1;
 	stack_pte[SYS_PD_SIZE - 1].rw = 1;
 	stack_pte[SYS_PD_SIZE - 1].enabled = 1;
-
 
 	sys_virtual_addr stack_ptr;
 	stack_ptr.offset = SYS_PAGE_SIZE - 16;
@@ -60,16 +74,22 @@ static void goto_user_entry_point(void *entry_point_ptr) {
 	sys_jump_to_userspace(&context);
 }
 
+static void *tmp_ = 0;
+
 _Noreturn void userspace_enter_userspace(void *entry_point_ptr) {
-	__asm__ volatile (
-		".intel_syntax noprefix\n"
-		"mov esp, eax\n"
-		"push edx\n"
-		"call ebx\n"
-		".att_syntax\n"
-		:
-		:"a" ((size_t)SYS_KERNEL_STACK_PTR),
-		 "b" (goto_user_entry_point),
-		 "d" (entry_point_ptr)
-	);
+	tmp_ = entry_point_ptr;
+	goto_user_entry_point(entry_point_ptr);
+}
+
+
+static void userspace_exit(uint32_t status) {
+	assert((get_cr0() & (1 << 31)) == 0);
+	printf("STATUS: %x ", status);
+	userspace_enter_userspace(tmp_);
+}
+
+
+_Noreturn void userspace_exit_forwarder(uint32_t status) {
+	sys_disable_paging();
+	userspace_exit(status);
 }

@@ -2,6 +2,7 @@
 #include "exp.h"
 #include "sys.h"
 #include "dtypes.h"
+#include "syscall.h"
 #include "assert.h"
 #include "printer.h"
 #include "interrupts.h"
@@ -21,20 +22,30 @@ static void sti() {
 uint32_t some_global = 0;
 
 static void exp_10() {
-	for (;;) {
-		__asm__ volatile (
-			".intel_syntax noprefix\n"
-			"int 0x80\n"
-			".att_syntax\n"
-		);
-	}
+	// for (;;) {
+	// 	__asm__ volatile (
+	// 		".intel_syntax noprefix\n"
+	// 		"push eax\n"
+	// 		"push ebx\n"
+	// 		"mov eax, 0x10\n"
+	// 		"mov ebx, %0\n"
+	// 		"int 0x80\n"
+	// 		"pop eax\n"
+	// 		"pop ebx\n"
+	// 		".att_syntax\n"
+	// 		:
+	// 		: "r" (some_global)
+	// 	);
+	// }
 
+	sys_exit(some_global);
 }
 
 static void exp_10_handler(interrupt_context *context) {
 	if (context->vector_index == 0x80) {
+		// printf("%u ", some_global);
 		some_global++;
-		printf("%d ", some_global);
+		syscall(context);
 	}
 	else if (context->vector_index == 0x20) {
 		some_global = 0;

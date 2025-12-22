@@ -75,7 +75,7 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 
 	for (uint32_t i = 0; i < SYS_PD_SIZE; i++) {
 		page_table_addr[i].frame_addr = i;
-		page_table_addr[i].us = ((i <= 0x80) || (i >= 0x100)); // for protection
+		page_table_addr[i].us = ((i <= 0x80) || (i >= 0x100)); // for vga protection
 		page_table_addr[i].rw = 1;
 		page_table_addr[i].enabled = 1;
 	}

@@ -261,12 +261,17 @@ sys_enable_paging:
 [GLOBAL sys_disable_paging]
 sys_disable_paging:
   mov eax, cr0
-  mov edx, 1
-  shl edx, 31
-  neg edx
+  mov edx, -1
+  shr edx, 1
   and eax, edx
   mov cr0, eax
   ret
+
+[GLOBAL sys_exit]
+sys_exit:
+  mov eax, 0
+  mov ebx, dword [esp + 4]
+  int 0x80
 
 
 ; pmemsave 0x7C00 65536 res.bin

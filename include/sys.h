@@ -5,6 +5,7 @@
 uint8_t sys_read_from_port(uint16_t port);
 void sys_write_to_port(uint16_t port, uint8_t data);
 
+void sys_exit(uint32_t status);
 void sys_cpu_halt();
 void sys_fake_syscall();
 void sys_infinite_loop();
@@ -79,7 +80,7 @@ typedef struct {
 #define SYS_GDT_USER_CODE 0x23
 #define SYS_GDT_USER_DATA 0x1b
 
-#define SYS_KERNEL_STACK_PTR 0x7c00
+#define SYS_KERNEL_STACK_PTR 0x4c00
 
 #define SYS_PAGE_SIZE (size_t)0x1000
 #define SYS_PD_SIZE (size_t)0x400
