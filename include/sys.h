@@ -11,6 +11,8 @@ void sys_infinite_loop();
 void sys_zero_div();
 void sys_break_gdt();
 void sys_init_paging(void *pde_ptr);
+void sys_enable_paging();
+void sys_disable_paging();
 void sys_jump_to_userspace(void *);
 uint32_t sys_read_eflags();
 

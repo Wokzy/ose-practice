@@ -251,12 +251,27 @@ sys_init_paging:
   or eax, 0x10
   mov cr4, eax ; PSE
 
+[GLOBAL sys_enable_paging]
+sys_enable_paging:
   mov eax, cr0
   mov edx, 1
   shl edx, 31
   or eax, edx
   mov cr0, eax
   ret
+
+[GLOBAL sys_disable_paging]
+sys_disable_paging:
+  mov eax, cr0
+  mov edx, 1
+  shl edx, 31
+  neg edx
+  and eax, edx
+  mov cr0, eax
+  ret
+
+sys_set_current_
+
 
 ; pmemsave 0x7C00 65536 res.bin
 

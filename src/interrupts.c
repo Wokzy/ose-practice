@@ -56,7 +56,6 @@ static void *gen_idt() {
 	}
 
 	idt[SYSCALL_VECTOR].dpl = 0b11;
-	// idt[SYSCALL_VECTOR+1].dpl = 0b11;
 
 	return idt;
 }

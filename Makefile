@@ -1,7 +1,7 @@
 # =============================================================================
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 100
+PAYLOAD_SIZE = 200
 GCC ?= gcc-14
 LD ?= ld
 

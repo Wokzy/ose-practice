@@ -78,7 +78,7 @@ void allocator_init_paging() {
 
 	for (uint32_t i = 0; i < 0x400; i++) {
 		page_table_addr[i].frame_addr = i;
-		page_table_addr[i].us = 1;
+		page_table_addr[i].us = ((i <= 0x80) || (i >= 0x100)); // for protection
 		page_table_addr[i].rw = 1;
 		page_table_addr[i].enabled = 1;
 	}
@@ -89,6 +89,11 @@ void allocator_init_paging() {
 	pde_ptr[0].enabled = 1;
 
 	sys_init_paging(pde_ptr);
+}
+
+
+void mmap_simple() {
+	sys_disable_paging();
 }
 
 
