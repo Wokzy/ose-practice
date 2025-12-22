@@ -54,8 +54,7 @@ void exp_10_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-
-	void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
-	userspace_enter_userspace(exp_10, user_stack);
+	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 16) + (uint32_t)4096);
+	userspace_enter_userspace(exp_10);
 }
 

@@ -242,8 +242,8 @@ sys_jump_to_userspace:
   mov esp, dword [esp + 4]
   jmp __restore_context
 
-[GLOBAL sys_init_paging]
-sys_init_paging:
+[GLOBAL sys_enable_paging]
+sys_enable_paging:
   mov eax, dword [esp + 4]
   mov cr3, eax
 
@@ -251,8 +251,6 @@ sys_init_paging:
   or eax, 0x10
   mov cr4, eax ; PSE
 
-[GLOBAL sys_enable_paging]
-sys_enable_paging:
   mov eax, cr0
   mov edx, 1
   shl edx, 31
@@ -269,8 +267,6 @@ sys_disable_paging:
   and eax, edx
   mov cr0, eax
   ret
-
-sys_set_current_
 
 
 ; pmemsave 0x7C00 65536 res.bin

@@ -10,8 +10,7 @@ void sys_fake_syscall();
 void sys_infinite_loop();
 void sys_zero_div();
 void sys_break_gdt();
-void sys_init_paging(void *pde_ptr);
-void sys_enable_paging();
+void sys_enable_paging(void *pde_ptr);
 void sys_disable_paging();
 void sys_jump_to_userspace(void *);
 uint32_t sys_read_eflags();
@@ -79,3 +78,10 @@ typedef struct {
 
 #define SYS_GDT_USER_CODE 0x23
 #define SYS_GDT_USER_DATA 0x1b
+
+#define SYS_KERNEL_STACK_PTR 0x7c00
+
+#define SYS_PAGE_SIZE (size_t)0x1000
+#define SYS_PD_SIZE (size_t)0x400
+#define SYS_PAGE_PTR_INIT (size_t)0x400000
+#define SYS_PAGE_ARENA_AMOUNT (size_t)0x8000 // 128 Mb
