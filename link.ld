@@ -5,6 +5,10 @@ SECTIONS {
         .tmp/boot.o (.text);
     }
 
+    .lib : {
+        .tmp/lib.o (.text);
+    }
+
     .kernel : {
         *(.text);
         *(.rodata);

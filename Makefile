@@ -25,11 +25,14 @@ all: build test
 .tmp/boot.o: src/boot.asm
 	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
 
+.tmp/lib.o: src/lib.asm
+	$(NASM) -felf src/lib.asm -o .tmp/lib.o
+
 $(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	$(GCC) -c $(GCC_FLAGS) $< -o $@
 
-boot.img: .tmp/boot.o $(C_SRC_OBJ)
-	$(LD) -m elf_i386 .tmp/boot.o $(C_SRC_OBJ) -T link.ld -o os.elf
+boot.img: .tmp/boot.o .tmp/lib.o $(C_SRC_OBJ)
+	$(LD) -m elf_i386 .tmp/boot.o .tmp/lib.o $(C_SRC_OBJ) -T link.ld -o os.elf
 	objcopy -I elf32-i386 -O binary os.elf boot.img
 # 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 # 	dd if=.tmp/boot.o of=boot.img conv=notrunc

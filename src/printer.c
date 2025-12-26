@@ -5,6 +5,7 @@
 #include "dtypes.h"
 #include "printer.h"
 #include "memory.h"
+#include "std.h"
 
 #define PRINTER_MAX_X 80
 #define PRINTER_MAX_Y 24
@@ -25,7 +26,7 @@ void init_printer() {
 }
 
 
-static void feed_char(const char c) {
+void feed_char(const char c) {
 	if (c == '\r') {
 		coord_x = 0;
 		return;
@@ -48,7 +49,7 @@ static void feed_char(const char c) {
 
 static void print_unsigned(uint32_t number) {
 	if (number == 0) {
-		feed_char('0');
+		std_print_char('0');
 		return;
 	}
 
@@ -64,14 +65,14 @@ static void print_unsigned(uint32_t number) {
 
 	for (size_t i = 0; i < 10; i++) {
 		if (value[i] != -1)
-			feed_char(value[i]);
+			std_print_char(value[i]);
 	}
 }
 
 
 static void print_signed(int32_t number) {
 	if (number < 0){
-		feed_char('-');
+		std_print_char('-');
 		number *= -1;
 	}
 
@@ -80,16 +81,9 @@ static void print_signed(int32_t number) {
 
 
 static void print_hex(uint32_t number) {
-	// if (number == 0) {
-	// 	feed_char('0');
-	// 	return;
-	// }
-
 	char value[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 	for (size_t i = 8; i > 0; i--) {
-		// if (number == 0)
-		// 	break;
 
 		char tmp = (char)(number % 16);
 		value[i - 1] = (tmp < 10) ? '0' + tmp : 'a' + tmp - (char)10;
@@ -98,7 +92,7 @@ static void print_hex(uint32_t number) {
 
 	for (size_t i = 0; i < 8; i++) {
 		if (value[i] != -1)
-			feed_char(value[i]);
+			std_print_char(value[i]);
 	}
 }
 
@@ -112,7 +106,7 @@ void vprintf(const char *str, va_list args) {
 		if (str[idx] == '%') {
 			idx++;
 			if (str[idx] == '%') {
-				feed_char('%');
+				std_print_char('%');
 			}
 			else if (str[idx] == 'd') {
 				print_signed(va_arg(args, int32_t));
@@ -121,17 +115,16 @@ void vprintf(const char *str, va_list args) {
 			} else if (str[idx] == 's') {
 				printf(va_arg(args, char *));
 			} else if (str[idx] == 'c') {
-				feed_char(va_arg(args, char));
+				std_print_char(va_arg(args, char));
 			} else if (str[idx] == 'x') {
 				print_hex(va_arg(args, uint32_t));
 			}
 		} else {
-			feed_char(str[idx]);
+			std_print_char(str[idx]);
 		}
 
 		idx++;
 	}
-	// feed_char('\n');
 }
 
 
