@@ -39,7 +39,7 @@ static void goto_user_entry_point(void *entry_point_ptr) {
 	assert(sizeof(sys_virtual_addr) == sizeof(void *));
 
 	sys_page_directory_entry *pde = allocator_init_userspace_paging();
-	sys_page_table_entry *stack_pte = allocator_alloc_page();
+	sys_page_table_entry *stack_pte = allocator_calloc_page();
 	pde[SYS_PD_SIZE - 1].page_table_addr = ((uint32_t)stack_pte) >> 12;
 	pde[SYS_PD_SIZE - 1].us = 1;
 	pde[SYS_PD_SIZE - 1].rw = 1;
@@ -109,7 +109,7 @@ void userspace_maybe_allocate_new_page(uint32_t cr2) {
 	sys_disable_paging();
 
 	if (!pde[addr.page_directory_index].enabled) {
-		pde[addr.page_directory_index].page_table_addr = ((uint32_t)allocator_alloc_page()) >> 12;
+		pde[addr.page_directory_index].page_table_addr = ((uint32_t)allocator_calloc_page()) >> 12;
 
 		if (pde[addr.page_directory_index].page_table_addr == 0)
 			userspace_exit_forwarder(0);

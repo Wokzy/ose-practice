@@ -55,9 +55,15 @@ void *allocator_alloc_page() {
 	free_page_ptr = (size_t) (*res);
 	free_page_counter--;
 
-	memset((uint8_t *)res, 0, SYS_PAGE_SIZE);
 
 	return (void *)res;
+}
+
+void *allocator_calloc_page() {
+	void *res = allocator_alloc_page();
+	memset((uint8_t *)res, 0, SYS_PAGE_SIZE);
+
+	return res;
 }
 
 void allocator_free_page(void *ptr) {
@@ -79,8 +85,8 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 
 	// printf("%u\n", free_page_counter);
 
-	sys_page_directory_entry *pde_ptr = (sys_page_directory_entry *)allocator_alloc_page();
-	sys_page_table_entry *page_table_addr = (sys_page_table_entry *)allocator_alloc_page();
+	sys_page_directory_entry *pde_ptr = (sys_page_directory_entry *)allocator_calloc_page();
+	sys_page_table_entry *page_table_addr = (sys_page_table_entry *)allocator_calloc_page();
 
 	for (size_t i = 0; i < SYS_PD_SIZE; i++) {
 		page_table_addr[i].frame_addr = i;
