@@ -9,6 +9,7 @@
 #include "allocator.h"
 #include "syscall.h"
 #include "sys.h"
+#include "std.h"
 
 #define INTERRUPTS_TRAMPOLINE_SIZE 8
 #define INTERRUPTS_TALBE_SIZE      256

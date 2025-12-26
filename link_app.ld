@@ -1,11 +1,11 @@
 SECTIONS {
-    . = 0x7C00;
+    . = 0x800000;
 
-    .boot : {
-        .tmp/boot.o (.text);
+    .startup : {
+        .tmp/startup.o (.text);
     }
 
-    .kernel : {
+    .app : {
         *(.text);
         *(.rodata);
         *(.rodata.*);

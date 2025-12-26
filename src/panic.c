@@ -3,6 +3,7 @@
 #include "sys.h"
 #include "panic.h"
 #include "printer.h"
+#include "std.h"
 
 void vkernel_panic(const char* msg, va_list args) {
 	/*

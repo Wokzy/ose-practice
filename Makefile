@@ -11,6 +11,7 @@ SRC_DIR = src
 BUILD_DIR = .tmp
 INCLUDE_DIR = ./include/
 
+ASM_SRC = $(wildcard $(SRC_DIR)/*.asm)
 C_SRC = $(wildcard $(SRC_DIR)/*.c)
 C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
 
@@ -28,11 +29,14 @@ all: build test
 .tmp/lib.o: src/lib.asm
 	$(NASM) -felf src/lib.asm -o .tmp/lib.o
 
+.tmp/std.o: src/std.asm
+	$(NASM) -felf src/std.asm -o .tmp/std.o
+
 $(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	$(GCC) -c $(GCC_FLAGS) $< -o $@
 
-boot.img: .tmp/boot.o .tmp/lib.o $(C_SRC_OBJ)
-	$(LD) -m elf_i386 .tmp/boot.o .tmp/lib.o $(C_SRC_OBJ) -T link.ld -o os.elf
+boot.img: .tmp/boot.o .tmp/lib.o .tmp/std.o $(C_SRC_OBJ)
+	$(LD) -m elf_i386 .tmp/boot.o .tmp/lib.o .tmp/std.o $(C_SRC_OBJ) -T link.ld -o os.elf
 	objcopy -I elf32-i386 -O binary os.elf boot.img
 # 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 # 	dd if=.tmp/boot.o of=boot.img conv=notrunc
@@ -54,4 +58,13 @@ test: build
 debug: build
 	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses -s -S
 
-.PHONY: all build clean test debug
+user_package_1: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app1.c -o .tmp/app1.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app1.o .tmp/std_.o -T link_app.ld -o app1.elf
+
+build_with_user_packages: user_package_1 .tmp/boot.o .tmp/lib.o
+
+
+
+.PHONY: all build clean test debug user_package_1 build_with_user_packages

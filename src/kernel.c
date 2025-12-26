@@ -1,6 +1,7 @@
 
 #include "vga.h"
 #include "sys.h"
+#include "std.h"
 #include "exp.h"
 #include "assert.h"
 #include "dtypes.h"

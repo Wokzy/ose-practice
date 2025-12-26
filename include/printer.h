@@ -5,5 +5,3 @@
 void feed_char(const char c);
 void printer_clear_screen();
 void init_printer();
-void vprintf(const char *str, va_list args);
-void printf(const char *str, ...);
