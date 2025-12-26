@@ -50,6 +50,19 @@ static void exp_10() {
 	// }
 
 	sys_exit(sys_n_rec(some_global));
+	// printf("hello!\n");
+
+	// for (;;) {
+
+	// 	__asm__ volatile (
+	// 		".intel_syntax noprefix\n"
+	// 		"mov ebx, 1235\n"
+	// 		"int 0x80\n"
+	// 		".att_syntax\n"
+	// 		:
+	// 		: "a" (0x10)
+	// 	);
+	// }
 
 }
 

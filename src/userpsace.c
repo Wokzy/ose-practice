@@ -12,7 +12,6 @@
 
 /*
 - paging выключен заранее
-- переключаемся на стек ядра 0x7c00
 - выделяем программе таблицу директорий, таблицу страниц для 0x0-0x400000 и 1 страницу для стека
 - включаем paging на выделенной таблице директорий
 
@@ -70,7 +69,8 @@ static void goto_user_entry_point(void *entry_point_ptr) {
 	context.esp = *(uint32_t*)(&stack_ptr);
 	context.ss = SYS_GDT_USER_DATA;
 
-	sys_enable_paging(pde);
+	sys_set_pde(pde);
+	sys_enable_paging();
 	sys_jump_to_userspace(&context);
 }
 
@@ -135,5 +135,5 @@ void userspace_maybe_allocate_new_page(uint32_t cr2) {
 		pte[addr.page_table_index].enabled = 1;
 	}
 
-	sys_enable_paging(pde);
+	sys_enable_paging();
 }
