@@ -7,9 +7,11 @@
 
 typedef struct {
 	interrupt_context context;
-	void *esp;
+	uint32_t esp;
 	alignas(4) uint16_t ss;
 } userspace_enter_context;
 
 
-void userspace_enter_userspace(void *entry_point_ptr, void *stack_ptr);
+_Noreturn void userspace_enter_userspace(void *entry_point_ptr);
+_Noreturn void userspace_exit_forwarder(uint32_t status);
+void userspace_maybe_allocate_new_page(uint32_t cr2);

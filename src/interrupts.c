@@ -4,6 +4,8 @@
 #include "printer.h"
 #include "panic.h"
 #include "assert.h"
+#include "memory.h"
+#include "userspace.h"
 #include "allocator.h"
 #include "syscall.h"
 #include "sys.h"
@@ -56,7 +58,6 @@ static void *gen_idt() {
 	}
 
 	idt[SYSCALL_VECTOR].dpl = 0b11;
-	// idt[SYSCALL_VECTOR+1].dpl = 0b11;
 
 	return idt;
 }
@@ -131,12 +132,49 @@ void interrupts_setup_interrupts(interrupts_config config) {
 #undef INTERRUPTS_TALBE_SIZE
 #undef INTERRUPTS_TRAMPOLINE_SIZE
 
+
+static uint32_t get_cr2() {
+	uint32_t cr2;
+
+	__asm__ volatile (
+		".intel_syntax noprefix\n"
+		"mov %0, cr2\n"
+		".att_syntax\n"
+		: "=r" (cr2)
+	);
+
+	return cr2;
+}
+
+
+void interrupts_page_fault_handler(interrupt_context *context) {
+	uint32_t cr2 = get_cr2();
+
+	if (checkbit(cr2, 2) == 0)
+		interrupts_kernel_painc_handler(context);
+
+	if (cr2 < 0x7000) {
+		printf("NPE ");
+		userspace_exit_forwarder(cr2);
+	} else if ((cr2 >= 0x80000) && (cr2 < 0x400000)) {
+		printf("GUARDPAGE ");
+		userspace_exit_forwarder(cr2);
+	} else {
+		// printf("SOE ");
+		userspace_maybe_allocate_new_page(cr2);
+	}
+}
+
+
 void interrupts_kernel_painc_handler(interrupt_context *context) {
+	uint32_t cr2 = get_cr2();
+
 	kernel_panic("unhandled interrupt #%x at %x:%x\n\n"
 		  "Registers: \n"
 		  "    EAX: %x" "    EBX: %x" "    ECX: %x" "    EDX: %x\n"
 		  "    EDI: %x" "    ESI: %x" "    ESP: %x" "    EBP: %x\n"
-		  "    DS : %x" "    ES : %x" "    GS : %x" "    FS : %x\n"
+		  "    DS : %x" "    ES : %x" "    GS : %x" "    FS : %x\n\n"
+		  "    CR2: %x\n\n"
 		  // "    XMM0: %x%x%x%x                                   \n"
 		  // "    XMM1: %x%x%x%x                                   \n"
 		  // "    XMM2: %x%x%x%x                                   \n"
@@ -145,9 +183,9 @@ void interrupts_kernel_painc_handler(interrupt_context *context) {
 		  // "    XMM5: %x%x%x%x                                   \n"
 		  // "    XMM6: %x%x%x%x                                   \n"
 		  // "    XMM7: %x%x%x%x                                   \n\n"
-		  "Error code: %x\n\n"
+		  "Error code: %x\n"
 		  "EFLAGS: %x\n", context->vector_index, context->cs, context->eip, context->eax, context->ebx, context->ecx, context->edx,
-		  context->edi, context->esi, context->esp, context->ebp, context->ds, context->es, context->gs, context->fs,
+		  context->edi, context->esi, context->esp, context->ebp, context->ds, context->es, context->gs, context->fs, cr2,
 		  // context->xmm0_0, context->xmm0_1, context->xmm0_2, context->xmm0_3,
 		  // context->xmm1_0, context->xmm1_1, context->xmm1_2, context->xmm1_3,
 		  // context->xmm2_0, context->xmm2_1, context->xmm2_2, context->xmm2_3,

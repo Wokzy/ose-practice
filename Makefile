@@ -1,7 +1,7 @@
 # =============================================================================
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 100
+PAYLOAD_SIZE = 200
 GCC ?= gcc-14
 LD ?= ld
 
@@ -15,7 +15,7 @@ C_SRC = $(wildcard $(SRC_DIR)/*.c)
 C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
 
 # https://gcc.gnu.org/onlinedocs/gcc-4.3.3/gcc/i386-and-x86_002d64-Options.html#i386-and-x86_002d64-Options
-GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protector -I$(INCLUDE_DIR) #-msse -msse2 -msse3 -mtune=core2
+GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protector -Werror=int-to-pointer-cast -I$(INCLUDE_DIR) #-msse -msse2 -msse3 -mtune=core2
 
 # =============================================================================
 # Tasks

@@ -5,11 +5,16 @@
 uint8_t sys_read_from_port(uint16_t port);
 void sys_write_to_port(uint16_t port, uint8_t data);
 
+void sys_exit(uint32_t status);
+uint32_t sys_n_rec(uint32_t n);
 void sys_cpu_halt();
 void sys_fake_syscall();
 void sys_infinite_loop();
 void sys_zero_div();
 void sys_break_gdt();
+void sys_set_pde(void *pde_ptr);
+void sys_enable_paging();
+void sys_disable_paging();
 void sys_jump_to_userspace(void *);
 uint32_t sys_read_eflags();
 
@@ -37,9 +42,47 @@ typedef struct {
 } gdt_desc;
 #pragma pack(pop)
 
+
+#pragma pack(push, 1)
+typedef struct {
+	uint8_t enabled          : 1;
+	uint8_t rw               : 1;
+	uint8_t us               : 1;
+	uint8_t __unused2        : 4;
+	uint8_t is_huge_page     : 1; // (0/1) (table/huge page)
+	uint8_t __unused         : 4;
+	uint32_t page_table_addr : 20;
+} sys_page_directory_entry;
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+typedef struct {
+	uint8_t  enabled         : 1;
+	uint8_t  rw              : 1;
+	uint8_t  us              : 1;
+	uint16_t __unused        : 9;
+	uint32_t frame_addr      : 20;
+} sys_page_table_entry;
+#pragma pack(pop)
+
+
+#pragma pack(push, 1)
+typedef struct {
+	uint16_t offset               : 12;
+	uint16_t page_table_index     : 10;
+	uint16_t page_directory_index : 10;
+} sys_virtual_addr;
+#pragma pack(pop)
+
+
 #define SYS_EFLAG_IOPL_0 12
 #define SYS_EFLAG_IOPL_1 13
 #define SYS_EFLAG_IF 9
 
 #define SYS_GDT_USER_CODE 0x23
 #define SYS_GDT_USER_DATA 0x1b
+
+#define SYS_PAGE_SIZE (size_t)0x1000
+#define SYS_PD_SIZE (size_t)0x400
+#define SYS_PAGE_PTR_INIT (size_t)0x400000
+#define SYS_PAGE_ARENA_AMOUNT (size_t)0x8000 // 128 Mb

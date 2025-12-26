@@ -43,3 +43,7 @@ uint32_t setbit(uint32_t n, uint32_t i) {
 uint32_t resetbit(uint32_t n, uint32_t i) {
 	return n & (~(1 << i));
 }
+
+uint32_t checkbit(uint32_t n, uint32_t i) {
+	return (n & (1 << i)) > 0;
+}

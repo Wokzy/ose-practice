@@ -45,6 +45,7 @@ typedef struct {
 void interrupts_send_eoi();
 void interrupts_setup_interrupts(interrupts_config config);
 void interrupts_kernel_painc_handler(interrupt_context *context);
+void interrupts_page_fault_handler(interrupt_context *context);
 void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);
 void interrupts_disable_device(sys_device device);
