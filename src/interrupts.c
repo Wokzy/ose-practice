@@ -151,20 +151,10 @@ static uint32_t get_cr2() {
 void interrupts_page_fault_handler(interrupt_context *context) {
 	uint32_t cr2 = get_cr2();
 
-	if (checkbit(cr2, 2) == 0)
+	if (checkbit(context->error_code, 2) == 0)
 		interrupts_kernel_painc_handler(context);
 
-	if (cr2 < 0x7000) {
-		printf("NPE ");
-		userspace_exit_forwarder(cr2);
-	} else if ((cr2 >= 0x80000) && (cr2 < 0x400000)) {
-		printf("GUARDPAGE ");
-		userspace_exit_forwarder(cr2);
-	} else {
-		printf("\nSegmentation fault\n");
-		userspace_exit_forwarder(cr2);
-		// userspace_maybe_allocate_new_page(cr2);
-	}
+	userspace_maybe_allocate_new_page(cr2);
 }
 
 

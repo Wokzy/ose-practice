@@ -177,7 +177,9 @@ static void userspace_exit(uint32_t status) {
 _Noreturn void userspace_exit_forwarder(uint32_t status) {
 	sys_disable_paging();
 	if (status == -1) {
-		printf("OOM!!!\n");
+		printf("Segmentation fault: core dumped\n");
+	} else if (status == -2) {
+		printf("Stack overflow\n");
 	} else {
 		printf("\n-----------------------\n");
 		printf("process exited with code: %d\n", status);
@@ -192,9 +194,17 @@ _Noreturn void userspace_exit_forwarder(uint32_t status) {
 void userspace_maybe_allocate_new_page(uint32_t cr2) {
 	sys_page_directory_entry *pde = (sys_page_directory_entry *)get_cr3();
 	sys_virtual_addr addr = *(sys_virtual_addr *)(&cr2);
-	// kernel_panic("%x %x %x %x", addr.page_directory_index, addr.page_table_index, addr.offset, cr2);
 
 	sys_disable_paging();
+
+	if (addr.page_directory_index == SYS_PD_SIZE - 2) {
+		userspace_exit_forwarder(-2);
+	} else if (addr.page_directory_index != SYS_PD_SIZE - 1) {
+		userspace_exit_forwarder(-1);
+	}
+
+	printf("%x\n", cr2);
+
 
 	if (!pde[addr.page_directory_index].enabled) {
 		pde[addr.page_directory_index].page_table_addr = ((uint32_t)allocator_calloc_page()) >> 12;

@@ -67,19 +67,3 @@ sys_exit:
   mov eax, 0
   mov ecx, dword [esp + 4]
   int 0x80
-
-
-[GLOBAL sys_n_rec]
-sys_n_rec:
-  mov eax, [esp + 4]
-  cmp eax, 0
-  mov ebx, esp
-  jz to_ret
-    sub esp, 4088
-    sub eax, 1
-    push eax
-    call sys_n_rec
-    add esp, 4092
-  to_ret:
-  mov eax, ebx
-  ret

@@ -66,7 +66,7 @@ user_package_1: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packa
 	objcopy -I elf32-i386 -O binary app1.elf app1.img
 
 build_with_user_packages: user_package_1 boot.img
-	dd if=app1.img of=boot.img bs=512 seek=194 conv=notrunc # real - 14c00
+	dd if=app1.img of=boot.img bs=512 seek=194 conv=notrunc # real - 0x18400
 
 
 
