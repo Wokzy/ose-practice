@@ -107,7 +107,6 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 	for (uint32_t i = 0; i < 4; i++) {
 		if (processes[i].pid == -1) {
 			processes[i].pde = allocator_init_userspace_paging();
-			processes[i].real_entry_point = real_entry_point;
 			processes[i].argc = argc;
 			processes[i].argv = allocate_argv(processes[i].pde, argc, argv);
 			processes[i].pid = i;
@@ -156,7 +155,7 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 	pde[entry_point.page_directory_index].rw = 1;
 
 	for (size_t i = 0; i < USERSPACE_PACKAGE_SIZE; i++) {
-		entry_point_pte[i].frame_addr = (processes[pid].real_entry_point >> 12) + i;
+		entry_point_pte[i].frame_addr = (real_entry_point >> 12) + i;
 		entry_point_pte[i].enabled = 1;
 		entry_point_pte[i].us = 1;
 		entry_point_pte[i].rw = 1;
@@ -176,10 +175,9 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 	processes[pid].context.eflags = setbit(processes[pid].context.eflags, SYS_EFLAG_IF);
 	processes[pid].context.esp_caller = *(uint32_t*)(&stack_ptr);
 	processes[pid].context.ss = SYS_GDT_USER_DATA;
+
+	return pid;
 }
-
-
-
 
 
 static void goto_next_process() {
@@ -197,7 +195,7 @@ static void goto_next_process() {
 	sys_jump_to_userspace(&processes[current_pid].context);
 }
 
-_Noreturn void userspace_start_process(uint32_t pid) {
+_Noreturn void userspace_goto_userspace() {
 	assert(sizeof(sys_virtual_addr) == sizeof(void *));
 
 	// current_pid = pid;

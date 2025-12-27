@@ -6,15 +6,7 @@
 #include "memory.h"
 
 typedef struct {
-	interrupt_context context;
-	uint32_t esp;
-	alignas(4) uint16_t ss;
-} userspace_enter_context;
-
-
-typedef struct {
 	sys_page_directory_entry *pde;
-	uint32_t real_entry_point;
 	uint32_t argc;
 	sys_virtual_addr argv;
 	uint32_t pid;
@@ -22,7 +14,7 @@ typedef struct {
 } userspace_process;
 
 uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...);
-_Noreturn void userspace_start_process(uint32_t pid);
+_Noreturn void userspace_goto_userspace();
 _Noreturn void userspace_exit_forwarder(uint32_t status);
 void userspace_maybe_allocate_new_page(uint32_t cr2);
 uint32_t userspace_get_pid();
