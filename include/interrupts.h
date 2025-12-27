@@ -34,6 +34,8 @@ typedef struct {
 	uint32_t eip;
 	alignas(4) uint16_t cs;
 	uint32_t eflags;
+	uint32_t esp_caller;
+	alignas(4) uint16_t ss;
 } interrupt_context;
 
 typedef struct {
@@ -50,3 +52,4 @@ void interrupts_interrupt_fowarder(interrupt_context* context);
 void interrupts_enable_device(sys_device device);
 void interrupts_disable_device(sys_device device);
 void interrupts_setup_default_preset();
+uint16_t interrupts_is_user_space(interrupt_context *context);

@@ -16,7 +16,11 @@ void syscall(interrupt_context *context) {
 			userspace_exit_forwarder(context->ecx);
 			break;
 		case 1:
-			feed_char(context->ecx);
+			if (interrupts_is_user_space(context)) {
+				feed_char(context->ecx, userspace_get_pid());
+			} else {
+				feed_char_system(context->ecx);
+			}
 			break;
 		case 0x10:
 			printf("%u ", context->ecx);

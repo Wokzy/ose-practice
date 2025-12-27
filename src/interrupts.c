@@ -194,12 +194,20 @@ void interrupts_interrupt_fowarder(interrupt_context *context) {
 	int_config.int_handler(context);
 }
 
+uint16_t interrupts_is_user_space(interrupt_context *context) {
+	return userspace_in_user_space(); //context->cs & 0b11;
+}
+
 
 static void interrupts_default_handler(interrupt_context *context) {
 	if (context->vector_index == 0x80) {
 		syscall(context);
+		// interrupts_kernel_painc_handler(context);
 	}
 	else if (context->vector_index == 0x20) {
+		if (userspace_in_user_space()) {
+			userspace_timer_handler(context);
+		}
 	} else if (context->vector_index == 0x0e) {
 		interrupts_page_fault_handler(context);
 	} else {
