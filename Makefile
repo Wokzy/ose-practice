@@ -1,7 +1,7 @@
 # =============================================================================
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 200
+PAYLOAD_SIZE = 300
 GCC ?= gcc-14
 LD ?= ld
 
@@ -65,8 +65,22 @@ user_package_1: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packa
 	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app1.o .tmp/std_.o -T link_app.ld -o app1.elf
 	objcopy -I elf32-i386 -O binary app1.elf app1.img
 
-build_with_user_packages: user_package_1 boot.img
+user_package_2: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app2.c -o .tmp/app2.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app2.o .tmp/std_.o -T link_app.ld -o app2.elf
+	objcopy -I elf32-i386 -O binary app2.elf app2.img
+
+user_package_3: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app3.c -o .tmp/app3.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app3.o .tmp/std_.o -T link_app.ld -o app3.elf
+	objcopy -I elf32-i386 -O binary app3.elf app3.img
+
+build_with_user_packages: user_package_1 user_package_2 user_package_3 boot.img
 	dd if=app1.img of=boot.img bs=512 seek=194 conv=notrunc # real - 0x18400
+	dd if=app2.img of=boot.img bs=512 seek=202 conv=notrunc # real - 0x18400
+	dd if=app3.img of=boot.img bs=512 seek=210 conv=notrunc # real - 0x18400
 
 
 

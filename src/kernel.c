@@ -17,8 +17,8 @@ _Noreturn void kernel_entry() {
 	userspace_setup_userspace();
 
 	uint32_t pid = userspace_init_process(0x20000, 4, "hello", "baz", "foo", "123");
-	uint32_t pid2 = userspace_init_process(0x20000, 4, "hello", "baz", "foo", "123");
-	uint32_t pid3 = userspace_init_process(0x20000, 4, "hello", "baz", "foo", "123");
+	uint32_t pid2 = userspace_init_process(0x22000, 4, "hello", "baz", "foo", "123");
+	uint32_t pid3 = userspace_init_process(0x21000, 4, "hello", "baz", "foo", "123");
 	userspace_start_process(pid);
 
 	sys_infinite_loop();

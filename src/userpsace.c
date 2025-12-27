@@ -185,7 +185,7 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 static void goto_next_process() {
 	entered_userspace = 1;
 	sys_disable_paging();
-	for (uint32_t i = 0;;i++) {
+	for (uint32_t i = 1;;i++) {
 		if (processes[(current_pid + i) % 4].pid != -1) {
 			current_pid = (current_pid + i) % 4;
 			break;
@@ -237,7 +237,7 @@ _Noreturn void userspace_exit_forwarder(uint32_t status) {
 
 void userspace_timer_handler(interrupt_context *context) {
 	processes[current_pid].context = *context;
-	// goto_next_process();
+	goto_next_process();
 }
 
 
@@ -273,7 +273,6 @@ void userspace_maybe_allocate_new_page(uint32_t cr2) {
 
 	if (!pte[addr.page_table_index].enabled) {
 		pte[addr.page_table_index].frame_addr = ((uint32_t)allocator_alloc_page() >> 12);
-		// kernel_panic("hello? %x", pte[addr.page_table_index].frame_addr);
 
 		if (pte[addr.page_table_index].frame_addr == 0)
 			userspace_exit_forwarder(-1);
