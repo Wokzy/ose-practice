@@ -19,6 +19,7 @@ void user_function() {
 }
 
 _Noreturn void kernel_entry() {
+	// sys_infinite_loop();
 	init_printer();
 	// interrupts_setup_default_preset();
 	// allocator_init_paging();

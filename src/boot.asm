@@ -11,50 +11,118 @@ cli
 ; or ax, 3 << 9
 ; mov cr4, eax
 
-xor sp, sp
-mov ss, sp
-mov ds, sp
-mov ax, 0x7c00
-mov sp, ax
+; xor sp, sp
+; mov ss, sp
+; mov ds, sp
+; mov ax, 0x7c00
+; mov sp, ax
 
-mov di, 0x7E0
-mov es, di
+; mov di, 0x7E0
+; mov es, di
+; xor bx, bx
+
+; mov ax, 0x0201
+; mov cx, 0x02
+; mov dh, 0x0
+; int 0x13
+
+; mov si, KERNEL_SIZE
+
+; read_loop:
+;   dec si
+;   add di, 0x20
+;   mov es, di
+;   test si, si
+;   jz boot
+
+;   inc cl
+;   cmp cl, 19
+;   jne read
+
+;   mov cl, 1
+;   inc dh
+
+;   cmp dh, 0x2
+;   jne read
+
+;   xor dh, dh
+;   inc ch
+
+;   read:
+;   clc
+;   mov ax, 0x0201
+;   int 0x13
+
+;   jc read
+;   jmp read_loop
+
+CYLINDERS_LIMIT equ 79
+HEADS_LIMIT equ 1
+SECTORS_PER_TRACK_LIMIT equ 36
+
+; === OTHER CONFIG ===
+
+KERNEL_STACK equ 0x7C00
+
+; === CODE ===
+; #region boot
+
+[BITS 16]
+
+; stack setup
+
+xor cx, cx
+mov ds, cx
+mov ss, cx
+mov sp, KERNEL_STACK
+
 xor bx, bx
+mov ax, 0x7E0
+mov es, ax
 
-mov ax, 0x0201
-mov cx, 0x02
-mov dh, 0x0
-int 0x13
+mov al, 1
+; ch == 0
+mov cl, 2
+xor dh, dh  
 
-mov si, KERNEL_SIZE
+mov di, KERNEL_SIZE
 
-read_loop:
-  dec si
-  add di, 0x20
-  mov es, di
-  test si, si
-  jz boot
+; read (di - 1) consecutive sectors
+
+.read:
+  ; ah = 0x2  - read sector form drive
+  ; al = 1    - sectors to read
+  ; ch = cylinder index [0, CYLINDERS_LIMIT]
+  ; cl = sector index [1, SECTORS_LIMIT]
+  ; dh - head index  [0, HEADS_LIMIT]
+  ; dl - drive number (passed by BIOS)
+  ; es:bx - buffer
+
+  dec di
+  jz .end_read_success
+
+  mov ah, 2
+  int 0x13
+  ; jc read_error
+
+  mov si, es
+  add si, 0x20
+  mov es, si
 
   inc cl
-  cmp cl, 19
-  jne read
+  cmp cl, SECTORS_PER_TRACK_LIMIT
+  jbe .read
 
   mov cl, 1
-  inc dh
+  xor dh, 1
+  jnz .read
 
-  cmp dh, 0x2
-  jne read
-
-  xor dh, dh
   inc ch
+  jmp .read
 
-  read:
-  clc
-  mov ax, 0x0201
-  int 0x13
+.end_read_success:
 
-  jc read
-  jmp read_loop
+.end_read:
 
 boot:
 cld
@@ -215,6 +283,7 @@ sys_jump_to_userspace:
 
 
 ; pmemsave 0x7C00 65536 res.bin
+; pmemsave 0x0 300000 res.bin
 
 pooo:
  dd 0x11111111, 0x22222222, 0x33333333, 0x44444444

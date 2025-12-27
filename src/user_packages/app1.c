@@ -3,5 +3,9 @@
 
 int main(void) {
 	printf("Hello world!!!!\n");
-	return 0;
+	// std_print_char('F');
+	// std_print_char('F');
+	// std_print_char('F');
+	// std_print_char('F');
+	return 2;
 }

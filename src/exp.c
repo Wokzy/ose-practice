@@ -92,6 +92,6 @@ void exp_10_init() {
 	interrupts_enable_device(TIMER);
 	sti();
 
-	userspace_enter_userspace(exp_10);
+	userspace_enter_userspace();
 }
 

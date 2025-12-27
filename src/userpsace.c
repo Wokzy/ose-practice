@@ -36,7 +36,8 @@ static sys_page_directory_entry *get_cr3() {
 	return cr3;
 }
 
-static void goto_user_entry_point(void *entry_point_ptr) {
+
+_Noreturn void userspace_enter_userspace() {
 	assert(sizeof(sys_virtual_addr) == sizeof(void *));
 
 	sys_page_directory_entry *pde = allocator_init_userspace_paging();
@@ -56,13 +57,34 @@ static void goto_user_entry_point(void *entry_point_ptr) {
 	stack_ptr.page_table_index = SYS_PD_SIZE - 1;
 	stack_ptr.page_directory_index = SYS_PD_SIZE - 1;
 
+	sys_virtual_addr entry_point;
+	entry_point.offset = 0;
+	entry_point.page_directory_index = 1;
+	entry_point.page_table_index = 0;
+
+
+	sys_page_table_entry *entry_point_pte = allocator_calloc_page();
+
+	pde[entry_point.page_directory_index].page_table_addr = ((uint32_t)entry_point_pte) >> 12;
+	pde[entry_point.page_directory_index].enabled = 1;
+	pde[entry_point.page_directory_index].us = 1;
+	pde[entry_point.page_directory_index].rw = 1;
+
+	for (size_t i = 0; i < USERSPACE_PACKAGE_SIZE; i++) {
+		entry_point_pte[i].frame_addr = 0x20 + i;
+		entry_point_pte[i].enabled = 1;
+		entry_point_pte[i].us = 1;
+		entry_point_pte[i].rw = 1;
+	}
+
+
 	userspace_enter_context context;
 	context.context.cs = SYS_GDT_USER_CODE;
 	context.context.gs = SYS_GDT_USER_DATA;
 	context.context.fs = SYS_GDT_USER_DATA;
 	context.context.es = SYS_GDT_USER_DATA;
 	context.context.ds = SYS_GDT_USER_DATA;
-	context.context.eip = (uint32_t)entry_point_ptr;
+	context.context.eip = *(uint32_t*)(&entry_point);
 	context.context.eflags = sys_read_eflags(); // https://wiki.osdev.org/CPU_Registers_x86#EFLAGS_Register
 	context.context.eflags = resetbit(context.context.eflags, SYS_EFLAG_IOPL_0);
 	context.context.eflags = resetbit(context.context.eflags, SYS_EFLAG_IOPL_1);
@@ -75,25 +97,20 @@ static void goto_user_entry_point(void *entry_point_ptr) {
 	sys_jump_to_userspace(&context);
 }
 
-static void *tmp_ = 0;
-
-_Noreturn void userspace_enter_userspace(void *entry_point_ptr) {
-	tmp_ = entry_point_ptr;
-	goto_user_entry_point(entry_point_ptr);
-}
-
 
 static void userspace_exit(uint32_t status) {
-	userspace_enter_userspace(tmp_);
+	// userspace_enter_userspace();
+	sys_infinite_loop();
 }
 
 
 _Noreturn void userspace_exit_forwarder(uint32_t status) {
 	sys_disable_paging();
-	if (status == 0) {
+	if (status == -1) {
 		printf("OOM!!!\n");
 	} else {
-		printf("STATUS: %x\n", status);
+		printf("\n-----------------------\n");
+		printf("process exited with code: %d\n", status);
 	}
 
 	allocator_free_pde(get_cr3());
@@ -113,7 +130,7 @@ void userspace_maybe_allocate_new_page(uint32_t cr2) {
 		pde[addr.page_directory_index].page_table_addr = ((uint32_t)allocator_calloc_page()) >> 12;
 
 		if (pde[addr.page_directory_index].page_table_addr == 0)
-			userspace_exit_forwarder(0);
+			userspace_exit_forwarder(-1);
 
 		pde[addr.page_directory_index].us = 1;
 		pde[addr.page_directory_index].rw = 1;
@@ -129,7 +146,7 @@ void userspace_maybe_allocate_new_page(uint32_t cr2) {
 		// kernel_panic("hello? %x", pte[addr.page_table_index].frame_addr);
 
 		if (pte[addr.page_table_index].frame_addr == 0)
-			userspace_exit_forwarder(0);
+			userspace_exit_forwarder(-1);
 
 		pte[addr.page_table_index].us = 1;
 		pte[addr.page_table_index].rw = 1;

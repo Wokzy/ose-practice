@@ -21,7 +21,7 @@ GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protect
 # =============================================================================
 # Tasks
 
-all: build test
+all: build_with_user_packages test
 
 .tmp/boot.o: src/boot.asm
 	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
@@ -41,6 +41,7 @@ boot.img: .tmp/boot.o .tmp/lib.o .tmp/std.o $(C_SRC_OBJ)
 # 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 # 	dd if=.tmp/boot.o of=boot.img conv=notrunc
 # 	dd if=zero.bin of=boot.img conv=notrunc seek=2
+
 
 build: boot.img
 
@@ -62,8 +63,11 @@ user_package_1: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packa
 	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app1.c -o .tmp/app1.o
 	$(NASM) -felf src/startup.asm -o .tmp/startup.o
 	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app1.o .tmp/std_.o -T link_app.ld -o app1.elf
+	objcopy -I elf32-i386 -O binary app1.elf app1.img
 
-build_with_user_packages: user_package_1 .tmp/boot.o .tmp/lib.o
+build_with_user_packages: user_package_1 boot.img
+	dd if=app1.img of=boot.img bs=512 seek=194 conv=notrunc # real - 14c00
+
 
 
 

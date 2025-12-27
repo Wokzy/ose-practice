@@ -1,11 +1,11 @@
 SECTIONS {
-    . = 0x800000;
+    . = 0x400000;
 
     .startup : {
         .tmp/startup.o (.text);
     }
 
-    .app : {
+    .app1 : {
         *(.text);
         *(.rodata);
         *(.rodata.*);

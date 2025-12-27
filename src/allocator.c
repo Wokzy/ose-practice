@@ -5,6 +5,7 @@
 #include "printer.h"
 #include "memory.h"
 #include "assert.h"
+#include "std.h"
 
 #define UNDEAD_PTR_INIT (size_t)0x100000
 #define UNDEAD_SIZE (size_t)0x10000
@@ -90,7 +91,7 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 
 	for (size_t i = 0; i < SYS_PD_SIZE; i++) {
 		page_table_addr[i].frame_addr = i;
-		page_table_addr[i].us = ((i < 0x80) && (i >= 0x7)); // for kernel protection
+		page_table_addr[i].us = 1; //((i < 0x80) && (i >= 0x7)); // for kernel protection
 		page_table_addr[i].rw = 1;
 		page_table_addr[i].enabled = 1;
 	}
@@ -106,7 +107,7 @@ sys_page_directory_entry *allocator_init_userspace_paging() {
 
 void *allocator_free_pde(sys_page_directory_entry *pde) {
 
-	for (size_t i = 1; i < SYS_PD_SIZE; i++) {
+	for (size_t i = 2; i < SYS_PD_SIZE; i++) {
 		if (!pde[i].enabled)
 			continue;
 
@@ -122,7 +123,8 @@ void *allocator_free_pde(sys_page_directory_entry *pde) {
 		allocator_free_page((void *)pte);
 	}
 
-	allocator_free_page((void*)(pde[0].page_table_addr << 12));
+	allocator_free_page((void *)(pde[0].page_table_addr << 12));
+	allocator_free_page((void *)(pde[1].page_table_addr << 12));
 	allocator_free_page((void *)pde);
 }
 
