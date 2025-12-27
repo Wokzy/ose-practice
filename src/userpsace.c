@@ -102,6 +102,8 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 	va_list argv;
 	va_start(argv, argc);
 
+	uint32_t pid = -1;
+
 	for (uint32_t i = 0; i < 4; i++) {
 		if (processes[i].pid == -1) {
 			processes[i].pde = allocator_init_userspace_paging();
@@ -109,19 +111,12 @@ uint32_t userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...) {
 			processes[i].argc = argc;
 			processes[i].argv = allocate_argv(processes[i].pde, argc, argv);
 			processes[i].pid = i;
-			return i;
+			pid = i;
+			break;
 		}
 	}
 
-	kernel_panic("no empty processes left");
-}
-
-
-_Noreturn void userspace_start_process(uint32_t pid) {
-	assert(sizeof(sys_virtual_addr) == sizeof(void *));
-
-	current_pid = pid;
-	entered_userspace = 1;
+	assert(pid != -1);
 
 	sys_page_directory_entry *pde = processes[pid].pde;
 	sys_page_table_entry *stack_pte = allocator_calloc_page();
@@ -168,27 +163,28 @@ _Noreturn void userspace_start_process(uint32_t pid) {
 	}
 
 
-	interrupt_context context;
-	context.cs = SYS_GDT_USER_CODE;
-	context.gs = SYS_GDT_USER_DATA;
-	context.fs = SYS_GDT_USER_DATA;
-	context.es = SYS_GDT_USER_DATA;
-	context.ds = SYS_GDT_USER_DATA;
-	context.eip = *(uint32_t*)(&entry_point);
-	context.eflags = sys_read_eflags(); // https://wiki.osdev.org/CPU_Registers_x86#EFLAGS_Register
-	context.eflags = resetbit(context.eflags, SYS_EFLAG_IOPL_0);
-	context.eflags = resetbit(context.eflags, SYS_EFLAG_IOPL_1);
-	context.eflags = setbit(context.eflags, SYS_EFLAG_IF);
-	context.esp_caller = *(uint32_t*)(&stack_ptr);
-	context.ss = SYS_GDT_USER_DATA;
-
-	sys_set_pde(pde);
-	sys_enable_paging();
-	sys_jump_to_userspace(&context);
+	// interrupt_context context;
+	processes[pid].context.cs = SYS_GDT_USER_CODE;
+	processes[pid].context.gs = SYS_GDT_USER_DATA;
+	processes[pid].context.fs = SYS_GDT_USER_DATA;
+	processes[pid].context.es = SYS_GDT_USER_DATA;
+	processes[pid].context.ds = SYS_GDT_USER_DATA;
+	processes[pid].context.eip = *(uint32_t*)(&entry_point);
+	processes[pid].context.eflags = sys_read_eflags(); // https://wiki.osdev.org/CPU_Registers_x86#EFLAGS_Register
+	processes[pid].context.eflags = resetbit(processes[pid].context.eflags, SYS_EFLAG_IOPL_0);
+	processes[pid].context.eflags = resetbit(processes[pid].context.eflags, SYS_EFLAG_IOPL_1);
+	processes[pid].context.eflags = setbit(processes[pid].context.eflags, SYS_EFLAG_IF);
+	processes[pid].context.esp_caller = *(uint32_t*)(&stack_ptr);
+	processes[pid].context.ss = SYS_GDT_USER_DATA;
 }
 
 
+
+
+
 static void goto_next_process() {
+	entered_userspace = 1;
+	sys_disable_paging();
 	for (uint32_t i = 0;;i++) {
 		if (processes[(current_pid + i) % 4].pid != -1) {
 			current_pid = (current_pid + i) % 4;
@@ -196,7 +192,22 @@ static void goto_next_process() {
 		}
 	}
 
+	sys_set_pde(processes[current_pid].pde);
+	sys_enable_paging();
 	sys_jump_to_userspace(&processes[current_pid].context);
+}
+
+_Noreturn void userspace_start_process(uint32_t pid) {
+	assert(sizeof(sys_virtual_addr) == sizeof(void *));
+
+	// current_pid = pid;
+	// entered_userspace = 1;
+
+	goto_next_process();
+
+	// sys_set_pde(pde);
+	// sys_enable_paging();
+	// sys_jump_to_userspace(&context);
 }
 
 
@@ -226,7 +237,7 @@ _Noreturn void userspace_exit_forwarder(uint32_t status) {
 
 void userspace_timer_handler(interrupt_context *context) {
 	processes[current_pid].context = *context;
-	goto_next_process();
+	// goto_next_process();
 }
 
 
