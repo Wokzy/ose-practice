@@ -1,5 +1,6 @@
 
 #include "memory.h"
+#include "assert.h"
 #include "dtypes.h"
 
 
@@ -46,4 +47,15 @@ uint32_t resetbit(uint32_t n, uint32_t i) {
 
 uint32_t checkbit(uint32_t n, uint32_t i) {
 	return (n & (1 << i)) > 0;
+}
+
+
+size_t strlen(char *str) {
+	uint32_t len = 0;
+	while (str[len] != 0) {
+		len++;
+		assert(len < 0x1000);
+	}
+
+	return len;
 }

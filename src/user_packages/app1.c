@@ -1,11 +1,9 @@
 
 #include "std.h"
 
-int main(void) {
-	printf("Hello world!!!!\n");
-	// std_print_char('F');
-	// std_print_char('F');
-	// std_print_char('F');
-	// std_print_char('F');
-	return 2;
+int main(int argc, char** argv) {
+	for (int i = 0; i < argc; i++) {
+		printf("%s\n", argv[i]);
+	}
+	return argc;
 }

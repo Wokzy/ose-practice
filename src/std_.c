@@ -1,4 +1,6 @@
 
+#include <stdarg.h>
+
 #include "dtypes.h"
 #include "std.h"
 

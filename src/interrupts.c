@@ -161,8 +161,9 @@ void interrupts_page_fault_handler(interrupt_context *context) {
 		printf("GUARDPAGE ");
 		userspace_exit_forwarder(cr2);
 	} else {
-		// printf("SOE ");
-		userspace_maybe_allocate_new_page(cr2);
+		printf("\nSegmentation fault\n");
+		userspace_exit_forwarder(cr2);
+		// userspace_maybe_allocate_new_page(cr2);
 	}
 }
 
@@ -204,14 +205,28 @@ void interrupts_interrupt_fowarder(interrupt_context *context) {
 }
 
 
+static void interrupts_default_handler(interrupt_context *context) {
+	if (context->vector_index == 0x80) {
+		syscall(context);
+	}
+	else if (context->vector_index == 0x20) {
+	} else if (context->vector_index == 0x0e) {
+		interrupts_page_fault_handler(context);
+	} else {
+		interrupts_kernel_painc_handler(context);
+	}
+}
+
+
 void interrupts_setup_default_preset() {
 	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
-		.int_handler = interrupts_kernel_painc_handler
+		.int_handler = interrupts_default_handler
 	};
 
 	interrupts_setup_interrupts(config);
+	interrupts_enable_device(TIMER);
 
 	__asm__ volatile (
 		".intel_syntax noprefix\n"

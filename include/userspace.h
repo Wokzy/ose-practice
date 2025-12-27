@@ -12,7 +12,15 @@ typedef struct {
 } userspace_enter_context;
 
 
-_Noreturn void userspace_enter_userspace();
+typedef struct {
+	sys_page_directory_entry *pde;
+	uint32_t real_entry_point;
+	uint32_t argc;
+	sys_virtual_addr argv;
+} userspace_process;
+
+userspace_process userspace_init_process(uint32_t real_entry_point, uint32_t argc, ...);
+_Noreturn void userspace_start_process(userspace_process process);
 _Noreturn void userspace_exit_forwarder(uint32_t status);
 void userspace_maybe_allocate_new_page(uint32_t cr2);
 
