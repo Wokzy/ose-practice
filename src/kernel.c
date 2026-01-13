@@ -1,7 +1,7 @@
 
 #include "vga.h"
 #include "sys.h"
-#include "exp.h"
+#include "std.h"
 #include "assert.h"
 #include "dtypes.h"
 #include "memory.h"
@@ -11,49 +11,15 @@
 #include "interrupts.h"
 
 
-
-void user_function() {
-	printf("from user!!!!\n");
-	sys_infinite_loop();
-}
-
 _Noreturn void kernel_entry() {
 	init_printer();
-	// interrupts_setup_default_preset();
-	// allocator_init_paging();
+	interrupts_setup_default_preset();
+	userspace_setup_userspace();
 
-	// void *user_stack = (void *)((uint32_t)malloc_undead(4096, 1) + (uint32_t)4095);
-	// userspace_enter_userspace(exp_7, user_stack);
-
-	exp_10_init();
-
-	// printf("HELLO!!!");
-
-	// uint8_t *addr1 = allocator_alloc_page();
-	// uint8_t *addr2 = allocator_alloc_page();
-	// uint8_t *addr3 = allocator_alloc_page();
-	// uint8_t *addr4 = allocator_alloc_page();
-	// printf("addr1 %x\n", addr1);
-	// printf("addr2 %x\n", addr2);
-	// printf("addr3 %x\n", addr3);
-	// printf("addr4 %x\n", addr4);
-
-	// addr4[4] = 123;
-
-	// printf("%x\n", addr4[4]);
-
-	// allocator_free_page(addr2);
-	// allocator_free_page(addr3);
-
-	// void *addr5 = allocator_alloc_page();
-
-	// printf("addr5 %x\n", addr5);
-
-	// void *ptr = allocator_alloc_page();
-	// for (;;) {
-	// 	printf("%x\n", ptr);
-	// 	ptr = allocator_alloc_page();
-	// }
+	uint32_t pid = userspace_init_process(0x20000, 4, "hello123", "baz", "foo", "123");
+	uint32_t pid2 = userspace_init_process(0x22000, 4, "hello", "baz", "foo", "123");
+	uint32_t pid3 = userspace_init_process(0x21000, 4, "hello", "baz", "foo", "123");
+	userspace_goto_userspace();
 
 	sys_infinite_loop();
 	// sys_cpu_halt();

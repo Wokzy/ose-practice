@@ -1,7 +1,7 @@
 # =============================================================================
 # Build tools
 NASM = nasm -f bin
-PAYLOAD_SIZE = 200
+PAYLOAD_SIZE = 300
 GCC ?= gcc-14
 LD ?= ld
 
@@ -11,6 +11,7 @@ SRC_DIR = src
 BUILD_DIR = .tmp
 INCLUDE_DIR = ./include/
 
+ASM_SRC = $(wildcard $(SRC_DIR)/*.asm)
 C_SRC = $(wildcard $(SRC_DIR)/*.c)
 C_SRC_OBJ = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRC))
 
@@ -20,20 +21,27 @@ GCC_FLAGS = -std=c23 -m32 -O2 -ffreestanding -no-pie -fno-pie -fno-stack-protect
 # =============================================================================
 # Tasks
 
-all: build test
+all: build_with_user_packages test
 
 .tmp/boot.o: src/boot.asm
 	$(NASM) -felf src/boot.asm -o .tmp/boot.o -dKERNEL_SIZE=${PAYLOAD_SIZE}
 
+.tmp/lib.o: src/lib.asm
+	$(NASM) -felf src/lib.asm -o .tmp/lib.o
+
+.tmp/std.o: src/std.asm
+	$(NASM) -felf src/std.asm -o .tmp/std.o
+
 $(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	$(GCC) -c $(GCC_FLAGS) $< -o $@
 
-boot.img: .tmp/boot.o $(C_SRC_OBJ)
-	$(LD) -m elf_i386 .tmp/boot.o $(C_SRC_OBJ) -T link.ld -o os.elf
+boot.img: .tmp/boot.o .tmp/lib.o .tmp/std.o $(C_SRC_OBJ)
+	$(LD) -m elf_i386 .tmp/boot.o .tmp/lib.o .tmp/std.o $(C_SRC_OBJ) -T link.ld -o os.elf
 	objcopy -I elf32-i386 -O binary os.elf boot.img
 # 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 # 	dd if=.tmp/boot.o of=boot.img conv=notrunc
 # 	dd if=zero.bin of=boot.img conv=notrunc seek=2
+
 
 build: boot.img
 
@@ -51,4 +59,30 @@ test: build
 debug: build
 	qemu-system-i386 -cpu max -m 1g -fda boot.img -monitor stdio -device VGA -display curses -s -S
 
-.PHONY: all build clean test debug
+user_package_1: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app1.c -o .tmp/app1.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app1.o .tmp/std_.o -T link_app.ld -o app1.elf
+	objcopy -I elf32-i386 -O binary app1.elf app1.img
+
+user_package_2: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app2.c -o .tmp/app2.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app2.o .tmp/std_.o -T link_app.ld -o app2.elf
+	objcopy -I elf32-i386 -O binary app2.elf app2.img
+
+user_package_3: .tmp/std.o ${BUILD_DIR}/std_.o #$(wildcard $(SRC_DIR)/user_packages/*.c) $(ASM_SRC)
+	$(GCC) -c $(GCC_FLAGS) $(SRC_DIR)/user_packages/app3.c -o .tmp/app3.o
+	$(NASM) -felf src/startup.asm -o .tmp/startup.o
+	$(LD) -m elf_i386 .tmp/std.o .tmp/startup.o .tmp/app3.o .tmp/std_.o -T link_app.ld -o app3.elf
+	objcopy -I elf32-i386 -O binary app3.elf app3.img
+
+build_with_user_packages: user_package_1 user_package_2 user_package_3 boot.img
+	dd if=app1.img of=boot.img bs=512 seek=194 conv=notrunc # real - 0x18400
+	dd if=app2.img of=boot.img bs=512 seek=202 conv=notrunc # real - 0x18400
+	dd if=app3.img of=boot.img bs=512 seek=210 conv=notrunc # real - 0x18400
+
+
+
+
+.PHONY: all build clean test debug user_package_1 build_with_user_packages

@@ -39,10 +39,12 @@ void vga_print_char(uint8_t x, uint8_t y, uint8_t chr) {
 	vga_print_colored_char(x, y, chr, WHITE, BLACK, false);
 }
 
-void vga_linefeed(void) {
-	memmove(vga_coords_to_ptr(0, 0), vga_coords_to_ptr(0, 1), VGA_SCREEN_SIZE - VGA_LINE_LEN);
-	memset(vga_coords_to_ptr(0, 79), 0, VGA_LINE_LEN);
+void vga_linefeed(uint32_t index) {
+	if (index == -1) {
+		memmove(vga_coords_to_ptr(0, 0), vga_coords_to_ptr(0, 1), VGA_SCREEN_SIZE - VGA_LINE_LEN);
+		memset(vga_coords_to_ptr(0, 23), 0, VGA_LINE_LEN);
+	} else {
+		memmove(vga_coords_to_ptr(0, 6 * index + index), vga_coords_to_ptr(0, 1 + 6 * index + index), VGA_SCREEN_SIZE - VGA_LINE_LEN);
+		memset(vga_coords_to_ptr(0, 6 * index - 1 + index), 0, VGA_LINE_LEN);
+	}
 }
-
-
-

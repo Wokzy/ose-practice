@@ -1,4 +1,4 @@
 .tmp
 *.bin
 *.img
-os.elf
+*.elf

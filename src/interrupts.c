@@ -9,6 +9,7 @@
 #include "allocator.h"
 #include "syscall.h"
 #include "sys.h"
+#include "std.h"
 
 #define INTERRUPTS_TRAMPOLINE_SIZE 8
 #define INTERRUPTS_TALBE_SIZE      256
@@ -150,19 +151,10 @@ static uint32_t get_cr2() {
 void interrupts_page_fault_handler(interrupt_context *context) {
 	uint32_t cr2 = get_cr2();
 
-	if (checkbit(cr2, 2) == 0)
+	if (checkbit(context->error_code, 2) == 0)
 		interrupts_kernel_painc_handler(context);
 
-	if (cr2 < 0x7000) {
-		printf("NPE ");
-		userspace_exit_forwarder(cr2);
-	} else if ((cr2 >= 0x80000) && (cr2 < 0x400000)) {
-		printf("GUARDPAGE ");
-		userspace_exit_forwarder(cr2);
-	} else {
-		// printf("SOE ");
-		userspace_maybe_allocate_new_page(cr2);
-	}
+	userspace_maybe_allocate_new_page(cr2);
 }
 
 
@@ -202,15 +194,37 @@ void interrupts_interrupt_fowarder(interrupt_context *context) {
 	int_config.int_handler(context);
 }
 
+uint16_t interrupts_is_user_space(interrupt_context *context) {
+	return userspace_in_user_space(); //context->cs & 0b11;
+}
+
+
+static void interrupts_default_handler(interrupt_context *context) {
+	if (context->vector_index == 0x80) {
+		syscall(context);
+		// interrupts_kernel_painc_handler(context);
+	}
+	else if (context->vector_index == 0x20) {
+		if (userspace_in_user_space()) {
+			userspace_timer_handler(context);
+		}
+	} else if (context->vector_index == 0x0e) {
+		interrupts_page_fault_handler(context);
+	} else {
+		interrupts_kernel_painc_handler(context);
+	}
+}
+
 
 void interrupts_setup_default_preset() {
 	interrupts_config config = {
 		.is_trap_gate = 0,
 		.auto_eoi = 1,
-		.int_handler = interrupts_kernel_painc_handler
+		.int_handler = interrupts_default_handler
 	};
 
 	interrupts_setup_interrupts(config);
+	interrupts_enable_device(TIMER);
 
 	__asm__ volatile (
 		".intel_syntax noprefix\n"
